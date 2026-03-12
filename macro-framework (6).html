@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Global Macro Framework 1.0</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#F0EDE6;--surface:#FAFAF7;--surface2:#ECEAE3;
+  --border:#DDD8CE;--border2:#C4BDB0;
+  --ink:#18160F;--ink2:#3A3628;--ink3:#7A7264;--ink4:#A8A090;
+  --bull:#1E6B2E;--bull-bg:rgba(30,107,46,.1);--bull-b:rgba(30,107,46,.25);
+  --bear:#8B1A1A;--bear-bg:rgba(139,26,26,.1);--bear-b:rgba(139,26,26,.25);
+  --neut:#5A5650;--neut-bg:rgba(90,86,80,.07);
+  --hh:56px;--r:5px;--sh:0 1px 4px rgba(0,0,0,.07);
+}
+html.dark{
+  --bg:#0D0C09;--surface:#131210;--surface2:#1A1915;
+  --border:#252218;--border2:#32302A;
+  --ink:#E6E2DA;--ink2:#B4B0A8;--ink3:#68645C;--ink4:#44403A;
+  --bull-bg:rgba(30,107,46,.15);--bull-b:rgba(30,107,46,.3);
+  --bear-bg:rgba(139,26,26,.15);--bear-b:rgba(139,26,26,.3);
+  --neut-bg:rgba(180,176,168,.07);
+}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;font-size:13px;line-height:1.5;min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+/* HEADER */
+#hdr{height:var(--hh);background:var(--ink);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:200}
+.logo{font-family:'EB Garamond',serif;font-size:18px;font-weight:500;color:#EDE9E2;flex-shrink:0;white-space:nowrap}
+.logo-v{font-family:'JetBrains Mono',monospace;font-size:8px;color:#3A3830;letter-spacing:1px;margin-left:6px}
+.hdr-sep{width:1px;height:22px;background:#252318;flex-shrink:0}
+.htabs{display:flex;gap:2px;flex:1}
+.htab{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;padding:5px 11px;border-radius:3px;cursor:pointer;border:none;background:transparent;color:#3A3830;transition:all .15s;white-space:nowrap}
+.htab:hover{background:rgba(255,255,255,.06);color:#AAA69E}
+.htab.active{background:rgba(255,255,255,.09);color:#EDE9E2}
+.hdr-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.tbtn{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.8px;text-transform:uppercase;background:none;border:1px solid #252318;color:#3A3830;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all .15s}
+.tbtn:hover{border-color:#555048;color:#AAA69E}
+
+/* API KEY BAR */
+#api-bar{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.api-lbl{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:1px;text-transform:uppercase;color:var(--ink4);white-space:nowrap}
+.api-inp{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg);border:1px solid var(--border2);border-radius:3px;color:var(--ink);padding:5px 10px;width:280px;outline:none;letter-spacing:.5px;transition:border-color .15s}
+.api-inp:focus{border-color:var(--ink3)}
+.api-btn{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;background:var(--ink);color:#EDE9E2;border:none;padding:6px 14px;border-radius:3px;cursor:pointer;white-space:nowrap;transition:opacity .15s}
+.api-btn:hover{opacity:.85}
+.api-btn:disabled{opacity:.4;cursor:not-allowed}
+.api-status{font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.5px;display:flex;align-items:center;gap:5px}
+.api-dot{width:6px;height:6px;border-radius:50%;background:var(--ink4)}
+.api-dot.loading{background:#F5A623;animation:pulse 1s ease-in-out infinite}
+.api-dot.ok{background:var(--bull)}
+.api-dot.err{background:var(--bear)}
+.api-hint{font-size:11px;color:var(--ink4);margin-left:auto}
+.api-hint a{color:var(--ink3);text-decoration:none}
+.api-hint a:hover{text-decoration:underline}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* VIEWS */
+#view-countries,#view-compare{display:none}
+#view-countries.active,#view-compare.active{display:block}
+
+/* COUNTRIES WRAP */
+.wrap{max-width:1280px;margin:0 auto;padding:24px 24px 48px}
+.page-title{font-family:'EB Garamond',serif;font-size:25px;font-weight:500;color:var(--ink);margin-bottom:4px}
+.page-sub{font-size:11.5px;color:var(--ink3);margin-bottom:20px}
+
+/* COUNTRY CARDS GRID */
+.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+
+/* COUNTRY CARD */
+.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;transition:border-color .2s}
+.cc:hover{border-color:var(--border2)}
+.cc-head{padding:13px 18px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.cc-flag{font-size:22px;line-height:1}
+.cc-info{flex:1}
+.cc-name{font-size:13.5px;font-weight:600;color:var(--ink)}
+.cc-code{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--ink4);letter-spacing:1px}
+.cc-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
+.cc-score{font-family:'EB Garamond',serif;font-size:30px;font-weight:500;line-height:1;transition:color .25s}
+.cc-bias{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.8px;padding:2px 6px;border-radius:2px;transition:all .25s}
+.cc-filled{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--ink4)}
+
+/* FRED status indicator on card */
+.fred-badge{display:flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:.5px;padding:2px 6px;border-radius:2px;background:var(--neut-bg);color:var(--ink4);margin-left:auto}
+.fred-badge.loaded{background:rgba(30,107,46,.08);color:var(--bull)}
+.fred-badge.loading{background:rgba(245,166,35,.1);color:#B8820A}
+
+/* INDICATOR ROWS */
+.cc-body{padding:4px 0 6px}
+.sec-lbl{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink4);padding:6px 16px 2px;display:flex;align-items:center;gap:6px}
+.sec-lbl-line{flex:1;height:1px;background:var(--border)}
+.ind-row{display:flex;align-items:center;padding:4px 16px;gap:8px;transition:background .1s}
+.ind-row:hover{background:var(--surface2)}
+.ind-name{font-size:11.5px;color:var(--ink2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ind-source{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:7px;color:var(--ink4);background:var(--surface2);padding:1px 4px;border-radius:2px;margin-left:4px;letter-spacing:.3px;vertical-align:middle}
+.ind-source.live{background:rgba(30,107,46,.08);color:var(--bull)}
+.ind-inp{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--ink);padding:3px 7px;width:84px;text-align:right;outline:none;transition:border-color .15s,background .2s}
+.ind-inp:focus{border-color:var(--ink3)}
+.ind-inp.auto-filled{background:rgba(30,107,46,.05);border-color:rgba(30,107,46,.25);color:var(--bull)}
+.ind-sel{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--ink);padding:3px 5px;width:152px;outline:none;cursor:pointer;transition:border-color .15s}
+.ind-sel:focus{border-color:var(--ink3)}
+.ind-unit{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink4);width:34px;flex-shrink:0}
+
+/* COMPARE */
+.pair-sel{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;box-shadow:var(--sh);flex-wrap:wrap}
+.ps-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--ink4)}
+.ps-sel{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--bg);border:1px solid var(--border2);border-radius:3px;color:var(--ink);padding:6px 9px;width:170px;outline:none;cursor:pointer}
+.ps-vs{font-family:'EB Garamond',serif;font-size:18px;color:var(--ink3)}
+.ps-btn{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;background:var(--ink);color:#EDE9E2;border:none;padding:7px 16px;border-radius:3px;cursor:pointer;margin-left:auto;transition:opacity .15s}
+.ps-btn:hover{opacity:.85}
+
+/* COMPARISON RESULT */
+.cmp{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:16px}
+.cmp-verdict{padding:22px 24px;text-align:center;border-bottom:1px solid var(--border)}
+.cv-signal{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;font-weight:600;margin-bottom:6px;padding:3px 10px;border-radius:3px;display:inline-block}
+.cv-action{font-family:'EB Garamond',serif;font-size:38px;font-weight:500;line-height:1.1;margin-bottom:8px}
+.cv-diff{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink4);margin-bottom:6px;letter-spacing:.5px}
+.cv-desc{font-size:12.5px;color:var(--ink3);max-width:500px;margin:0 auto}
+
+.cmp-cols{display:grid;grid-template-columns:1fr 80px 1fr;border-bottom:1px solid var(--border)}
+.cmp-col{padding:18px 20px;text-align:center}
+.cmp-mid{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);border-right:1px solid var(--border)}
+.col-flag{font-size:26px;margin-bottom:3px}
+.col-name{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px}
+.col-score{font-family:'EB Garamond',serif;font-size:44px;font-weight:500;line-height:1;margin-bottom:4px}
+.col-bias{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.8px;padding:2px 8px;border-radius:2px;display:inline-block}
+.mid-delta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink3);text-align:center}
+.mid-delta span{display:block;font-size:14px;font-weight:600;color:var(--ink2)}
+
+.cmp-bk{padding:14px 20px}
+.bk-title{font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink4);margin-bottom:10px}
+.bk-row{display:grid;grid-template-columns:1fr 130px 1fr;align-items:center;gap:6px;padding:5px 0;border-top:1px solid var(--border)}
+.bk-row:first-of-type{border-top:none}
+.bk-l{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+.bk-c{text-align:center;font-size:11px;color:var(--ink4)}
+.bk-r{text-align:left;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
+
+/* helpers */
+.sc-bull{color:var(--bull)}.sc-bear{color:var(--bear)}.sc-neut{color:var(--ink3)}
+.bg-bull{background:var(--bull-bg);color:var(--bull);border-color:var(--bull-b)}
+.bg-bear{background:var(--bear-bg);color:var(--bear);border-color:var(--bear-b)}
+.bg-neut{background:var(--neut-bg);color:var(--neut)}
+.empty-state{text-align:center;padding:48px 24px;color:var(--ink4)}
+.empty-state .ei{font-size:36px;margin-bottom:10px}
+
+body,.cc,.cmp,.pair-sel{transition:background .2s,border-color .2s,color .2s}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div id="hdr">
+  <div><span class="logo">Global Macro Framework</span><span class="logo-v">v1.0</span></div>
+  <div class="hdr-sep"></div>
+  <div class="htabs">
+    <button class="htab active" onclick="showView('countries',this)">🌍 Países</button>
+    <button class="htab" onclick="showView('compare',this)">⚖️ Comparar Par</button>
+  </div>
+  <div class="hdr-right">
+    <button class="tbtn" id="tbtn" onclick="toggleTheme()">☾ Dark</button>
+  </div>
+</div>
+
+<!-- FRED API KEY BAR -->
+<div id="api-bar">
+  <span class="api-lbl">FRED API Key</span>
+  <input class="api-inp" id="api-key-inp" type="text" value="ea426e2b913a446916dc903d80633949" autocomplete="off" spellcheck="false">
+  <button class="api-btn" id="api-load-btn" onclick="loadFREDData()">↓ Cargar datos reales</button>
+  <div class="api-status" id="api-status">
+    <div class="api-dot" id="api-dot"></div>
+    <span id="api-status-txt">Sin clave — datos manuales</span>
+  </div>
+  <div class="api-hint">
+    Clave gratuita en <a href="https://fred.stlouisfed.org/docs/api/api_key.html" target="_blank">fred.stlouisfed.org</a>
+    &nbsp;·&nbsp; Los datos en <span style="color:var(--bull);font-weight:600">verde</span> son automáticos, el resto manual.
+  </div>
+</div>
+
+<!-- VIEW: COUNTRIES -->
+<div id="view-countries" class="active">
+<div class="wrap">
+  <div class="page-title">Scores por País</div>
+  <div class="page-sub">Pulsa "Cargar datos reales" para rellenar automáticamente los indicadores de FRED. Los indicadores sin API (PMI, Consumer Confidence, Seasonality) se introducen manualmente.</div>
+  <div class="cg" id="cg"></div>
+</div>
+</div>
+
+<!-- VIEW: COMPARE -->
+<div id="view-compare">
+<div class="wrap">
+  <div class="page-title">Comparar Par de Divisas</div>
+  <div class="page-sub">Selecciona dos países para obtener la señal de compra/venta basada en el diferencial de scores macro.</div>
+  <div class="pair-sel">
+    <span class="ps-lbl">Base</span>
+    <select class="ps-sel" id="cmp-a"><option value="">— País base —</option></select>
+    <span class="ps-vs">/</span>
+    <span class="ps-lbl">Quote</span>
+    <select class="ps-sel" id="cmp-b"><option value="">— País quote —</option></select>
+    <button class="ps-btn" onclick="runCompare()">Comparar →</button>
+  </div>
+  <div id="cmp-out">
+    <div class="empty-state"><div class="ei">⚖️</div><div>Selecciona dos países y pulsa Comparar</div></div>
+  </div>
+</div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════════
+// SCORING TABLES — exact values from PDF (never shown in UI)
+// ══════════════════════════════════════════════════════════════
+const T = {
+  m2:   [[50,4],[40,6],[30,10],[20,8],[15,6],[10,4],[5,0],[0,-4],[-5,-8],[-10,-10],[-15,8],[-20,10],[-30,10],[-40,10],[-50,10]],
+  ir:   [[60,0],[50,0],[40,0],[30,0],[20,-10],[15,-9],[10,-6],[5,-3],[0,0],[-5,0],[-10,3],[-15,5],[-20,7],[-30,-8],[-40,-9],[-50,-10],[-60,-10]],
+  cpi:  [[1.4,3],[1.2,6],[1.0,10],[0.8,8],[0.6,6],[0.4,4],[0.3,0],[0,0],[-0.1,-6],[-0.2,-8],[-0.3,-10],[-0.4,6],[-0.5,8],[-0.6,10],[-0.7,10]],
+  cpic: [[1.40,3],[1.20,6],[1.00,10],[0.80,8],[0.60,6],[0.40,4],[0.20,0],[0.00,-4],[-0.05,-8],[-0.10,-9],[-0.15,-10],[-0.20,7],[-0.25,8],[-0.30,9],[-0.35,10]],
+  ppi:  [[2.00,3],[1.75,6],[1.50,10],[1.00,8],[0.75,4],[0.50,2],[0.25,0],[0.00,0],[-0.25,-2],[-0.50,-4],[-0.75,-8],[-1.00,10],[-1.25,10]],
+  ppic: [[2.00,3],[1.75,6],[1.50,10],[1.00,10],[0.75,8],[0.50,6],[0.25,0],[0.00,-6],[-0.25,-8],[-0.50,-10],[-0.75,6],[-1.00,10],[-1.25,10]],
+  nfp:  [[0.50,2],[0.40,4],[0.30,7],[0.20,5],[0.10,3],[0.00,-6],[-0.10,-8],[-0.20,-10],[-0.30,8],[-0.40,10],[-0.50,10],[-0.60,10]],
+  debt: [[100,10],[95,10],[90,9],[85,9],[80,8],[75,8],[70,7],[65,7],[60,6],[55,6],[50,5],[45,5],[40,4],[35,4],[30,3],[25,3],[20,2],[15,2],[10,1],[5,1],[0,0],[-5,-1],[-10,-1],[-15,-2],[-20,-2],[-25,-3],[-30,-3],[-35,-4],[-40,-4],[-45,-5],[-50,-5],[-55,-6],[-60,-6],[-65,-7],[-70,-7],[-75,-8],[-80,-8],[-85,-9],[-90,-9],[-95,-10],[-100,-10]],
+  sd:   [[-10,10],[-9.5,10],[-9,9],[-8.5,9],[-8,8],[-7.5,8],[-7,7],[-6.5,7],[-6,6],[-5.5,6],[-5,5],[-4.5,5],[-4,4],[-3.5,4],[-3,3],[-2.5,3],[-2,2],[-1.5,2],[-1,1],[-0.5,1],[0,0],[0.5,-1],[1,-1],[1.5,-2],[2,-2],[2.5,-3],[3,-3],[3.5,-4],[4,-4],[4.5,-5],[5,-5],[5.5,-6],[6,-6],[6.5,-7],[7,-7],[7.5,-8],[8,-8],[8.5,-9],[9,-9],[9.5,-10],[10,-10]],
+  igdp: [[5,-10],[4.5,-10],[4,-10],[3.5,-10],[3,-10],[2.5,-10],[2,-8],[1.5,-6],[1,-4],[0.5,-2],[0,0]],
+  liq:  [[15,10],[14,8],[13,6],[12,4],[11,2],[10,0],[9,-1],[8,-2],[7,-3],[6,-4],[5,-5],[4,-6],[3,-7],[2,-8],[1,-9],[0,-10]],
+  t10:  [[16,-10],[15,-9],[14,-8],[13,-7],[12,-6],[11,-5],[10,-4],[9,-3],[8,-2],[7,-1],[6,0],[5,2],[4,4],[3,6],[2,8],[1,10],[0,10]],
+};
+
+function closest(key,val){
+  let best=null,bd=Infinity;
+  for(const[rv,sc]of T[key]){const d=Math.abs(rv-val);if(d<bd){bd=d;best=sc;}}
+  return best;
+}
+
+// ══════════════════════════════════════════════════════════════
+// FRED SERIES CONFIG per country
+// series: { indicatorId: 'FRED_SERIES_ID' }
+// transform: how to turn raw FRED value into the indicator value
+// ══════════════════════════════════════════════════════════════
+const FRED_SERIES = {
+  us: {
+    cpi:  { id:'CPIAUCSL',   transform:'pct_mom' },   // CPI MoM %
+    cpic: { id:'CPILFESL',   transform:'pct_mom' },   // CPI Core MoM %
+    ppi:  { id:'PPIFGS',     transform:'pct_mom' },   // PPI MoM %
+    ppic: { id:'PPILFE',     transform:'pct_mom' },   // PPI Core MoM %
+    nfp:  { id:'PAYEMS',     transform:'pct_mom' },   // NFP MoM %
+    m2:   { id:'M2SL',       transform:'pct_ann' },   // M2 annualized
+    ir:   { id:'FEDFUNDS',   transform:'pct_chg_ann'},// Fed Funds rate change ann.
+    t10:  { id:'DGS10',      transform:'last' },      // 10Y yield direct
+    debt: { id:'GFDEGDQ188S',transform:'last' },      // Federal Debt % GDP
+    sd:   { id:'MTSDS133FMS',transform:'gdp_ratio' }, // Monthly Treasury Surplus/Deficit
+    igdp: { id:'A091RC1Q027SBEA', transform:'last' }, // Net interest % GDP
+  },
+  eu: {
+    cpi:  { id:'CP0000EZ19M086NEST', transform:'pct_mom' },
+    t10:  { id:'IRLTLT01EZM156N',    transform:'last' },
+    m2:   { id:'MABMM301EZM189S',    transform:'pct_ann' },
+    ir:   { id:'ECBDFR',             transform:'pct_chg_ann' },
+  },
+  gb: {
+    cpi:  { id:'GBRCPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01GBM156N',    transform:'last' },
+    m2:   { id:'MABMM301GBM189S',    transform:'pct_ann' },
+    ir:   { id:'BOEBR',              transform:'pct_chg_ann' },
+    nfp:  { id:'LRHUTTTTGBM156S',    transform:'pct_chg_inv' },
+  },
+  jp: {
+    cpi:  { id:'JPNCPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01JPM156N',    transform:'last' },
+    m2:   { id:'MABMM301JPM189S',    transform:'pct_ann' },
+    ir:   { id:'IRSTCI01JPM156N',    transform:'pct_chg_ann' },
+  },
+  ca: {
+    cpi:  { id:'CANCPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01CAM156N',    transform:'last' },
+    m2:   { id:'MABMM301CAM189S',    transform:'pct_ann' },
+    ir:   { id:'IRSTCI01CAM156N',    transform:'pct_chg_ann' },
+  },
+  au: {
+    cpi:  { id:'AUSCPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01AUM156N',    transform:'last' },
+    ir:   { id:'IRSTCI01AUM156N',    transform:'pct_chg_ann' },
+  },
+  ch: {
+    cpi:  { id:'CHECPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01CHM156N',    transform:'last' },
+    ir:   { id:'IRSTCI01CHM156N',    transform:'pct_chg_ann' },
+  },
+  nz: {
+    cpi:  { id:'NZLCPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01NZM156N',    transform:'last' },
+  },
+  cn: {
+    cpi:  { id:'CHNCPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01CNM156N',    transform:'last' },
+  },
+  sg: {
+    cpi:  { id:'SGPCPIALLMINMEI',    transform:'pct_mom' },
+    t10:  { id:'IRLTLT01SGM156N',    transform:'last' },
+  },
+};
+
+// Transform functions applied to FRED observations array
+function applyTransform(observations, transform) {
+  // Sort by date descending
+  const sorted = [...observations].sort((a,b) => new Date(b.date) - new Date(a.date));
+  const valid = sorted.filter(o => o.value !== '.' && o.value !== null && o.value !== undefined);
+  if(!valid.length) return null;
+
+  if(transform === 'last') {
+    return parseFloat(valid[0].value);
+  }
+  if(transform === 'pct_mom') {
+    // MoM % change of the index
+    if(valid.length < 2) return null;
+    const curr = parseFloat(valid[0].value);
+    const prev = parseFloat(valid[1].value);
+    if(isNaN(curr)||isNaN(prev)||prev===0) return null;
+    return ((curr - prev) / prev) * 100;
+  }
+  if(transform === 'pct_ann') {
+    // Annualized: take 2 most recent, annualize weekly → M2 A% = MoM * 12
+    if(valid.length < 2) return null;
+    const curr = parseFloat(valid[0].value);
+    const prev = parseFloat(valid[1].value);
+    if(isNaN(curr)||isNaN(prev)||prev===0) return null;
+    const mom = (curr - prev) / prev;
+    return mom * 12 * 100; // annualized % (M2 A%)
+  }
+  if(transform === 'pct_chg_ann') {
+    // Rate change annualized: current rate vs 12m ago
+    if(valid.length < 13) {
+      if(valid.length < 2) return null;
+      const curr = parseFloat(valid[0].value);
+      const prev = parseFloat(valid[valid.length-1].value);
+      return (curr - prev) * 12; // extrapolate
+    }
+    const curr  = parseFloat(valid[0].value);
+    const ago12 = parseFloat(valid[12].value);
+    return (curr - ago12) * 100; // in basis points × 100 for IR A% scale
+  }
+  if(transform === 'gdp_ratio') {
+    // Surplus/Deficit: just return monthly value in billions, need to scale
+    return parseFloat(valid[0].value) / 100; // rough % GDP proxy
+  }
+  if(transform === 'pct_chg_inv') {
+    // Unemployment → invert for NFP proxy
+    if(valid.length < 2) return null;
+    const curr = parseFloat(valid[0].value);
+    const prev = parseFloat(valid[1].value);
+    return -(curr - prev); // falling unemployment = positive
+  }
+  return parseFloat(valid[0].value);
+}
+
+// ══════════════════════════════════════════════════════════════
+// INDICATOR DEFINITIONS
+// ══════════════════════════════════════════════════════════════
+const INDS = [
+  // SURVEYS (manual — no free API)
+  {id:'pmi_mfg', label:'PMI Manufacturing', unit:'', section:'Surveys', type:'sel',
+   options:[['','— —'],['vl','ISM > 50 creciendo'],['l','ISM > 50 desacel.'],['s','ISM < 50 creciendo'],['vs','ISM < 50 desacel.']],
+   calc:v=>({vl:-3,l:-2,s:-1,vs:0}[v]??null), fredKey:null},
+  {id:'pmi_svc',  label:'PMI Services',      unit:'', section:'Surveys', type:'sel',
+   options:[['','— —'],['vl','ISM > 50 creciendo'],['l','ISM > 50 desacel.'],['s','ISM < 50 creciendo'],['vs','ISM < 50 desacel.']],
+   calc:v=>({vl:-3,l:-2,s:-1,vs:0}[v]??null), fredKey:null},
+  {id:'cc', label:'Consumer Confidence', unit:'/10', section:'Surveys', type:'num', placeholder:'1–10', step:'1',
+   calc:v=>{const n=parseInt(v);if(isNaN(n))return null;return n<=4?-3:n<=6?-1:-5;}, fredKey:null},
+  {id:'bp', label:'Building Permits', unit:'MoM%', section:'Surveys', type:'num', placeholder:'e.g. 2', step:'0.5',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return n>3?-3:n>1?-2:n>0?-1:n>=-1?0:1;}, fredKey:null},
+  // MONETARY
+  {id:'m2', label:'Money Supply M2', unit:'A%', section:'Monetary', type:'num', placeholder:'e.g. 10', step:'5',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('m2',n);}, fredKey:'m2'},
+  {id:'ir', label:'CB Interest Rates', unit:'A%', section:'Monetary', type:'num', placeholder:'e.g. −10', step:'5',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('ir',n);}, fredKey:'ir'},
+  // INFLATION
+  {id:'cpi',  label:'CPI',       unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.4', step:'0.1',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('cpi',n);}, fredKey:'cpi'},
+  {id:'cpic', label:'CPI Core',  unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.3', step:'0.05',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('cpic',n);}, fredKey:'cpic'},
+  {id:'ppi',  label:'PPI',       unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.5', step:'0.25',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('ppi',n);}, fredKey:'ppi'},
+  {id:'ppic', label:'PPI Core',  unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.3', step:'0.25',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('ppic',n);}, fredKey:'ppic'},
+  // EMPLOYMENT
+  {id:'nfp', label:'NFP Employment', unit:'MoM%', section:'Employment', type:'num', placeholder:'e.g. 0.2', step:'0.1',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('nfp',n);}, fredKey:'nfp'},
+  // SOVEREIGN RISK
+  {id:'debt', label:'Gov. Debt / GDP',        unit:'%',     section:'Sovereign', type:'num', placeholder:'e.g. 95', step:'5',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('debt',n);}, fredKey:'debt'},
+  {id:'sd',   label:'Gov. Surplus/Deficit %GDP', unit:'%GDP', section:'Sovereign', type:'num', placeholder:'e.g. −6', step:'0.5',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('sd',n);}, fredKey:'sd'},
+  {id:'igdp', label:'Interest / GDP',         unit:'%GDP',  section:'Sovereign', type:'num', placeholder:'e.g. 2.0', step:'0.5',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('igdp',n);}, fredKey:'igdp'},
+  {id:'liq',  label:'Liquidity Cover',        unit:'ratio', section:'Sovereign', type:'num', placeholder:'e.g. 10', step:'1',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('liq',n);}, fredKey:null},
+  {id:'t10',  label:'10Y Bond Yield',         unit:'%',     section:'Sovereign', type:'num', placeholder:'e.g. 4.3', step:'0.5',
+   calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('t10',n);}, fredKey:'t10'},
+  // GDP & SEASONALITY
+  {id:'gdp',  label:'GDP Growth',       unit:'', section:'GDP & Seas.', type:'sel',
+   options:[['','— —'],['pos','Positivo'],['neg','Negativo']],
+   calc:v=>({pos:-1,neg:0}[v]??null), fredKey:null},
+  {id:'seas', label:'Market Seasonality', unit:'', section:'GDP & Seas.', type:'sel',
+   options:[['','— —'],['pos','Mes alcista'],['neg','Mes bajista']],
+   calc:v=>({pos:-1,neg:0}[v]??null), fredKey:null},
+];
+
+// ══════════════════════════════════════════════════════════════
+// COUNTRIES
+// ══════════════════════════════════════════════════════════════
+const COUNTRIES = [
+  {id:'us', flag:'🇺🇸', name:'United States', code:'USD', color:'#1E4A8C'},
+  {id:'eu', flag:'🇪🇺', name:'Eurozone',       code:'EUR', color:'#1A3A6E'},
+  {id:'gb', flag:'🇬🇧', name:'United Kingdom', code:'GBP', color:'#8B1A1A'},
+  {id:'jp', flag:'🇯🇵', name:'Japan',          code:'JPY', color:'#C0392B'},
+  {id:'ch', flag:'🇨🇭', name:'Switzerland',    code:'CHF', color:'#C41E3A'},
+  {id:'ca', flag:'🇨🇦', name:'Canada',         code:'CAD', color:'#D13B2C'},
+  {id:'au', flag:'🇦🇺', name:'Australia',      code:'AUD', color:'#1A5C8A'},
+  {id:'nz', flag:'🇳🇿', name:'New Zealand',    code:'NZD', color:'#2A6B3A'},
+  {id:'cn', flag:'🇨🇳', name:'China',          code:'CNY', color:'#B22222'},
+  {id:'sg', flag:'🇸🇬', name:'Singapore',      code:'SGD', color:'#C0392B'},
+];
+
+// STATE[countryId][indicatorId] = string value
+const STATE = {};
+COUNTRIES.forEach(c => { STATE[c.id] = {}; });
+
+// ══════════════════════════════════════════════════════════════
+// SCORE CALCULATION
+// ══════════════════════════════════════════════════════════════
+function getScore(cid) {
+  let total=0, filled=0;
+  INDS.forEach(ind => {
+    const v = STATE[cid][ind.id];
+    if(v !== undefined && v !== '' && v !== null) {
+      const sc = ind.calc(String(v));
+      if(sc !== null) { total += sc; filled++; }
+    }
+  });
+  return {total, filled, max: INDS.length};
+}
+
+function biasLabel(s){ if(s<=-20)return'VERY LONG'; if(s<0)return'LONG'; if(s===0)return'NEUTRAL'; if(s<=20)return'SHORT'; return'VERY SHORT'; }
+function scCls(s){ return s<0?'sc-bull':s>0?'sc-bear':'sc-neut'; }
+function bgCls(s){ return s<0?'bg-bull':s>0?'bg-bear':'bg-neut'; }
+
+// ══════════════════════════════════════════════════════════════
+// BUILD UI
+// ══════════════════════════════════════════════════════════════
+function groupInds() {
+  const g={};
+  INDS.forEach(ind => { if(!g[ind.section])g[ind.section]=[]; g[ind.section].push(ind); });
+  return g;
+}
+
+function buildGrid() {
+  const cg = document.getElementById('cg');
+  const groups = groupInds();
+
+  cg.innerHTML = COUNTRIES.map(c => {
+    const fredSeries = FRED_SERIES[c.id] || {};
+    const fredCount  = Object.keys(fredSeries).length;
+
+    const bodyHtml = Object.entries(groups).map(([sec, inds]) => `
+      <div class="sec-lbl">${sec}<div class="sec-lbl-line"></div></div>
+      ${inds.map(ind => {
+        const hasFred = ind.fredKey && fredSeries[ind.fredKey];
+        const srcBadge = hasFred
+          ? `<span class="ind-source" id="src-${c.id}-${ind.id}">FRED</span>`
+          : `<span class="ind-source">manual</span>`;
+        const inputHtml = ind.type === 'sel'
+          ? `<select class="ind-sel" id="inp-${c.id}-${ind.id}"
+               onchange="onInput('${c.id}','${ind.id}',this.value)">
+               ${ind.options.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
+             </select>`
+          : `<input class="ind-inp" id="inp-${c.id}-${ind.id}"
+               type="number" step="${ind.step}" placeholder="${ind.placeholder}"
+               oninput="onInput('${c.id}','${ind.id}',this.value)">`;
+        return `<div class="ind-row">
+          <span class="ind-name">${ind.label}${srcBadge}</span>
+          ${inputHtml}
+          <span class="ind-unit">${ind.unit}</span>
+        </div>`;
+      }).join('')}
+    `).join('');
+
+    return `<div class="cc" id="card-${c.id}">
+      <div class="cc-head" style="border-top:3px solid ${c.color}">
+        <span class="cc-flag">${c.flag}</span>
+        <div class="cc-info">
+          <div class="cc-name">${c.name}</div>
+          <div class="cc-code">${c.code}</div>
+        </div>
+        <div class="cc-right">
+          <div class="cc-score sc-neut" id="score-${c.id}">0</div>
+          <div class="cc-bias bg-neut" id="bias-${c.id}">NEUTRAL</div>
+          <div class="cc-filled" id="filled-${c.id}">0 / ${INDS.length} indicadores</div>
+        </div>
+        ${fredCount ? `<div class="fred-badge" id="fbadge-${c.id}">FRED: ${fredCount} series</div>` : ''}
+      </div>
+      <div class="cc-body">${bodyHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+function onInput(cid, iid, val) {
+  STATE[cid][iid] = val;
+  updateCardScore(cid);
+}
+
+function updateCardScore(cid) {
+  const {total, filled, max} = getScore(cid);
+  const sc    = document.getElementById(`score-${cid}`);
+  const bias  = document.getElementById(`bias-${cid}`);
+  const fill  = document.getElementById(`filled-${cid}`);
+  if(sc)   { sc.textContent = (total>0?'+':'')+total; sc.className = 'cc-score '+scCls(total); }
+  if(bias) { bias.textContent = biasLabel(total); bias.className = 'cc-bias '+bgCls(total); }
+  if(fill) fill.textContent = `${filled} / ${max} indicadores`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// FRED DATA LOADING
+// ══════════════════════════════════════════════════════════════
+async function fetchFRED(seriesId, apiKey) {
+  const end = new Date();
+  const start = new Date(end);
+  start.setMonth(start.getMonth() - 18);
+  const fmt = d => d.toISOString().split('T')[0];
+
+  const fredUrl = `https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${apiKey}&file_type=json&sort_order=desc&observation_start=${fmt(start)}&observation_end=${fmt(end)}`;
+
+  // Try direct, then fallback CORS proxies
+  const urls = [
+    fredUrl,
+    `https://corsproxy.io/?` + encodeURIComponent(fredUrl),
+    `https://api.allorigins.win/get?url=` + encodeURIComponent(fredUrl),
+  ];
+
+  let lastErr;
+  for(const url of urls) {
+    try {
+      const resp = await fetch(url, { signal: AbortSignal.timeout(10000) });
+      if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      let data = await resp.json();
+      if(data.contents) data = JSON.parse(data.contents);
+      if(data.error_message) throw new Error(data.error_message);
+      return data.observations || [];
+    } catch(e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+function setStatus(state, msg) {
+  const dot  = document.getElementById('api-dot');
+  const txt  = document.getElementById('api-status-txt');
+  dot.className  = 'api-dot ' + state;
+  txt.textContent = msg;
+}
+
+async function loadFREDData() {
+  const key = document.getElementById('api-key-inp').value.trim();
+  if(!key || key.length < 20) {
+    setStatus('err', 'Clave inválida (mínimo 20 caracteres)');
+    return;
+  }
+
+  const btn = document.getElementById('api-load-btn');
+  btn.disabled = true;
+  btn.textContent = '↻ Cargando...';
+  setStatus('loading', 'Conectando con FRED...');
+
+  let loaded = 0, errors = 0, total = 0;
+
+  for(const country of COUNTRIES) {
+    const series = FRED_SERIES[country.id];
+    if(!series) continue;
+
+    const fbadge = document.getElementById(`fbadge-${country.id}`);
+    if(fbadge) { fbadge.textContent = '↻ cargando...'; fbadge.className = 'fred-badge loading'; }
+
+    let countryLoaded = 0;
+
+    for(const [indKey, cfg] of Object.entries(series)) {
+      total++;
+      try {
+        const observations = await fetchFRED(cfg.id, key);
+        const value = applyTransform(observations, cfg.transform);
+
+        if(value !== null && !isNaN(value)) {
+          const rounded = Math.round(value * 100) / 100;
+
+          // Find the indicator id that matches this fredKey
+          const ind = INDS.find(i => i.fredKey === indKey);
+          if(ind) {
+            STATE[country.id][ind.id] = String(rounded);
+
+            // Update the input field
+            const inputEl = document.getElementById(`inp-${country.id}-${ind.id}`);
+            if(inputEl && inputEl.type === 'number') {
+              inputEl.value = rounded;
+              inputEl.classList.add('auto-filled');
+            }
+
+            // Mark source badge as live
+            const srcEl = document.getElementById(`src-${country.id}-${ind.id}`);
+            if(srcEl) { srcEl.textContent = 'FRED ✓'; srcEl.classList.add('live'); }
+
+            countryLoaded++;
+            loaded++;
+          }
+        }
+      } catch(e) {
+        errors++;
+        console.warn(`FRED failed [${country.id}/${indKey}]:`, e.message);
+      }
+      // Small delay to respect FRED rate limits (120 req/min)
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    updateCardScore(country.id);
+    if(fbadge) {
+      fbadge.textContent = countryLoaded > 0 ? `FRED: ${countryLoaded} cargados ✓` : 'FRED: sin datos';
+      fbadge.className = 'fred-badge ' + (countryLoaded > 0 ? 'loaded' : '');
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = '↓ Cargar datos reales';
+
+  if(errors === 0) {
+    setStatus('ok', `✓ ${loaded} indicadores cargados desde FRED`);
+  } else if(loaded > 0) {
+    setStatus('ok', `✓ ${loaded} cargados · ${errors} no disponibles`);
+  } else {
+    setStatus('err', 'Error: verifica tu API key');
+  }
+}
+
+// ══════════════════════════════════════════════════════════════
+// COMPARE
+// ══════════════════════════════════════════════════════════════
+function populateCompareSelects() {
+  const opts = COUNTRIES.map(c => `<option value="${c.id}">${c.flag} ${c.name} (${c.code})</option>`).join('');
+  ['cmp-a','cmp-b'].forEach(id => {
+    document.getElementById(id).innerHTML = `<option value="">— Seleccionar —</option>` + opts;
+  });
+}
+
+function runCompare() {
+  const idA = document.getElementById('cmp-a').value;
+  const idB = document.getElementById('cmp-b').value;
+  const out = document.getElementById('cmp-out');
+  if(!idA || !idB || idA===idB) {
+    out.innerHTML = `<div class="empty-state"><div class="ei">⚠️</div><div>Selecciona dos países distintos</div></div>`;
+    return;
+  }
+  const cA = COUNTRIES.find(c=>c.id===idA);
+  const cB = COUNTRIES.find(c=>c.id===idB);
+  const sA = getScore(idA);
+  const sB = getScore(idB);
+  const diff = sA.total - sB.total;
+
+  let action, color, signal, desc;
+  if(diff < -5)      { action=`COMPRAR ${cA.code}/${cB.code}`; color='var(--bull)'; signal='BUY'; desc=`${cA.name} tiene un perfil macro significativamente más fuerte (Δ${diff}). Favorable comprar ${cA.code} frente a ${cB.code}.`; }
+  else if(diff > 5)  { action=`VENDER ${cA.code}/${cB.code}`;  color='var(--bear)'; signal='SELL'; desc=`${cB.name} tiene un perfil macro más fuerte (Δ${diff}). Favorable vender ${cA.code} frente a ${cB.code}.`; }
+  else               { action=`NEUTRAL ${cA.code}/${cB.code}`; color='var(--neut)'; signal='WAIT'; desc=`Diferencial insuficiente (Δ${diff>0?'+':''}${diff} pts). Perfiles macro similares — esperar señal más clara o añadir más datos.`; }
+
+  const groups = groupInds();
+  const rows = Object.entries(groups).map(([sec, inds]) => {
+    let stA=0, stB=0;
+    inds.forEach(ind => {
+      const vA=STATE[idA][ind.id]; const vB=STATE[idB][ind.id];
+      if(vA&&vA!==''){const sc=ind.calc(String(vA));if(sc!==null)stA+=sc;}
+      if(vB&&vB!==''){const sc=ind.calc(String(vB));if(sc!==null)stB+=sc;}
+    });
+    const clA = stA<stB?'sc-bull':stA>stB?'sc-bear':'sc-neut';
+    const clB = stB<stA?'sc-bull':stB>stA?'sc-bear':'sc-neut';
+    const arrA = stA<stB?'▲':stA>stB?'▼':'—';
+    const arrB = stB<stA?'▲':stB>stA?'▼':'—';
+    return `<div class="bk-row">
+      <div class="bk-l ${clA}">${arrA} ${stA>0?'+':''}${stA}</div>
+      <div class="bk-c">${sec}</div>
+      <div class="bk-r ${clB}">${stB>0?'+':''}${stB} ${arrB}</div>
+    </div>`;
+  }).join('');
+
+  out.innerHTML = `<div class="cmp">
+    <div class="cmp-verdict">
+      <div class="cv-signal" style="background:${color}22;color:${color};border:1px solid ${color}44">${signal}</div>
+      <div class="cv-action" style="color:${color}">${action}</div>
+      <div class="cv-diff">${cA.flag} ${cA.code} (${sA.total>0?'+':''}${sA.total}) &nbsp;vs&nbsp; ${cB.flag} ${cB.code} (${sB.total>0?'+':''}${sB.total}) &nbsp;·&nbsp; Diferencial: ${diff>0?'+':''}${diff} pts</div>
+      <div class="cv-desc">${desc}</div>
+    </div>
+    <div class="cmp-cols">
+      <div class="cmp-col">
+        <div class="col-flag">${cA.flag}</div>
+        <div class="col-name">${cA.name} (${cA.code})</div>
+        <div class="col-score ${scCls(sA.total)}">${sA.total>0?'+':''}${sA.total}</div>
+        <div class="col-bias ${bgCls(sA.total)}">${biasLabel(sA.total)}</div>
+      </div>
+      <div class="cmp-mid">
+        <div class="mid-delta">Δ<span>${diff>0?'+':''}${diff}</span></div>
+      </div>
+      <div class="cmp-col">
+        <div class="col-flag">${cB.flag}</div>
+        <div class="col-name">${cB.name} (${cB.code})</div>
+        <div class="col-score ${scCls(sB.total)}">${sB.total>0?'+':''}${sB.total}</div>
+        <div class="col-bias ${bgCls(sB.total)}">${biasLabel(sB.total)}</div>
+      </div>
+    </div>
+    <div class="cmp-bk">
+      <div class="bk-title">Desglose por categoría — ${cA.code} izquierda · ${cB.code} derecha</div>
+      ${rows}
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════════════════
+// VIEW & THEME
+// ══════════════════════════════════════════════════════════════
+function showView(name, tabEl) {
+  document.getElementById('view-countries').classList.toggle('active', name==='countries');
+  document.getElementById('view-compare').classList.toggle('active', name==='compare');
+  document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
+  if(tabEl) tabEl.classList.add('active');
+}
+let dk=false;
+function toggleTheme(){
+  dk=!dk;
+  document.documentElement.classList.toggle('dark',dk);
+  document.getElementById('tbtn').textContent=dk?'☀ Light':'☾ Dark';
+}
+
+// INIT
+buildGrid();
+populateCompareSelects();
+// Auto-load FRED data on page open
+window.addEventListener('load', () => { loadFREDData(); });
+</script>
+</body>
+</html>
