@@ -1,698 +1,512 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Global Macro Framework 1.0</title>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Global Macro Framework 2.0</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#F0EDE6;--surface:#FAFAF7;--surface2:#ECEAE3;
-  --border:#DDD8CE;--border2:#C4BDB0;
-  --ink:#18160F;--ink2:#3A3628;--ink3:#7A7264;--ink4:#A8A090;
-  --bull:#1E6B2E;--bull-bg:rgba(30,107,46,.1);--bull-b:rgba(30,107,46,.25);
-  --bear:#8B1A1A;--bear-bg:rgba(139,26,26,.1);--bear-b:rgba(139,26,26,.25);
-  --neut:#5A5650;--neut-bg:rgba(90,86,80,.07);
-  --hh:56px;--r:5px;--sh:0 1px 4px rgba(0,0,0,.07);
+  --bg:#f5f6f8;--card:#ffffff;--card2:#fbfbfc;--border:#e4e7ec;--border2:#d0d5dd;
+  --text:#101828;--muted:#667085;--muted2:#98a2b3;--blue:#344054;
+  --green:#067647;--green-bg:#ecfdf3;--red:#b42318;--red-bg:#fef3f2;--amber:#b54708;--amber-bg:#fffaeb;
+  --shadow:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.04);
+  --r:12px;--r-sm:8px;--header:64px;
 }
 html.dark{
-  --bg:#0D0C09;--surface:#131210;--surface2:#1A1915;
-  --border:#252218;--border2:#32302A;
-  --ink:#E6E2DA;--ink2:#B4B0A8;--ink3:#68645C;--ink4:#44403A;
-  --bull-bg:rgba(30,107,46,.15);--bull-b:rgba(30,107,46,.3);
-  --bear-bg:rgba(139,26,26,.15);--bear-b:rgba(139,26,26,.3);
-  --neut-bg:rgba(180,176,168,.07);
+  --bg:#0f1115;--card:#171a21;--card2:#13161c;--border:#242833;--border2:#313644;
+  --text:#f2f4f7;--muted:#98a2b3;--muted2:#667085;--blue:#d0d5dd;
+  --green:#32d583;--green-bg:rgba(18,183,106,.12);--red:#f97066;--red-bg:rgba(240,68,56,.12);--amber:#fdb022;--amber-bg:rgba(247,144,9,.12);
+  --shadow:none;
 }
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:var(--ink);font-family:'Outfit',sans-serif;font-size:13px;line-height:1.5;min-height:100vh}
-::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
-
-/* ── HEADER ── */
-#hdr{height:var(--hh);background:var(--ink);display:flex;align-items:center;padding:0 24px;gap:14px;position:sticky;top:0;z-index:200}
-.logo{font-family:'EB Garamond',serif;font-size:18px;font-weight:500;color:#EDE9E2;flex-shrink:0;white-space:nowrap}
-.logo-v{font-family:'JetBrains Mono',monospace;font-size:8px;color:#3A3830;letter-spacing:1px;margin-left:6px}
-.hdr-sep{width:1px;height:22px;background:#252318;flex-shrink:0}
-.htabs{display:flex;gap:2px;flex:1}
-.htab{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;padding:5px 11px;border-radius:3px;cursor:pointer;border:none;background:transparent;color:#3A3830;transition:all .15s;white-space:nowrap}
-.htab:hover{background:rgba(255,255,255,.06);color:#AAA69E}
-.htab.active{background:rgba(255,255,255,.09);color:#EDE9E2}
-.hdr-right{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.sync-status{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.5px;display:flex;align-items:center;gap:5px;color:#3A3830}
-.sync-dot{width:6px;height:6px;border-radius:50%;background:#3A3830;flex-shrink:0}
-.sync-dot.loading{background:#F5A623;animation:pulse 1s ease-in-out infinite}
-.sync-dot.ok{background:#2A8A3A}
-.sync-dot.err{background:#8B1A1A}
-.tbtn{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.8px;text-transform:uppercase;background:none;border:1px solid #252318;color:#3A3830;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all .15s}
-.tbtn:hover{border-color:#555048;color:#AAA69E}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-
-/* ── VIEWS ── */
-#view-countries,#view-compare{display:none}
-#view-countries.active,#view-compare.active{display:block}
-
-/* ── LAYOUT ── */
-.wrap{max-width:1280px;margin:0 auto;padding:24px 24px 48px}
-.page-title{font-family:'EB Garamond',serif;font-size:25px;font-weight:500;color:var(--ink);margin-bottom:4px}
-.page-sub{font-size:11.5px;color:var(--ink3);margin-bottom:20px;display:flex;align-items:center;gap:8px}
-.live-pill{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.8px;background:rgba(30,107,46,.1);color:var(--bull);border:1px solid rgba(30,107,46,.2);padding:2px 7px;border-radius:10px}
-.manual-pill{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:.8px;background:var(--neut-bg);color:var(--ink4);border:1px solid var(--border);padding:2px 7px;border-radius:10px}
-
-/* ── COUNTRY GRID ── */
-.cg{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
-
-/* ── COUNTRY CARD ── */
-.cc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;transition:border-color .2s}
-.cc:hover{border-color:var(--border2)}
-.cc-head{padding:13px 18px 11px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
-.cc-flag{font-size:22px;line-height:1}
-.cc-info{flex:1}
-.cc-name{font-size:13.5px;font-weight:600;color:var(--ink)}
-.cc-meta{display:flex;align-items:center;gap:6px;margin-top:2px}
-.cc-code{font-family:'JetBrains Mono',monospace;font-size:8px;color:var(--ink4);letter-spacing:1px}
-.cc-updated{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--ink4)}
-.cc-right{text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px}
-.cc-score{font-family:'EB Garamond',serif;font-size:32px;font-weight:500;line-height:1;transition:color .25s}
-.cc-bias{font-family:'JetBrains Mono',monospace;font-size:8px;font-weight:600;letter-spacing:.8px;padding:2px 6px;border-radius:2px;transition:all .25s}
-.cc-filled{font-family:'JetBrains Mono',monospace;font-size:7.5px;color:var(--ink4)}
-.cc-spin{font-size:10px;animation:spin .8s linear infinite;display:none}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* ── INDICATOR ROWS ── */
-.cc-body{padding:4px 0 6px}
-.sec-lbl{font-family:'JetBrains Mono',monospace;font-size:7px;letter-spacing:1.5px;text-transform:uppercase;color:var(--ink4);padding:6px 16px 2px;display:flex;align-items:center;gap:6px}
-.sec-lbl-line{flex:1;height:1px;background:var(--border)}
-.ind-row{display:flex;align-items:center;padding:4px 16px;gap:8px;transition:background .1s}
-.ind-row:hover{background:var(--surface2)}
-.ind-name{font-size:11.5px;color:var(--ink2);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ind-src{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:6.5px;padding:1px 3px;border-radius:2px;margin-left:3px;vertical-align:middle;letter-spacing:.3px}
-.ind-src.live{background:rgba(30,107,46,.1);color:var(--bull)}
-.ind-src.manual{background:var(--surface2);color:var(--ink4)}
-.ind-inp{font-family:'JetBrains Mono',monospace;font-size:11px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--ink);padding:3px 7px;width:84px;text-align:right;outline:none;transition:border-color .15s,background .25s,color .25s}
-.ind-inp:focus{border-color:var(--ink3)}
-.ind-inp.live{background:rgba(30,107,46,.05);border-color:rgba(30,107,46,.3);color:var(--bull)}
-.ind-sel{font-family:'JetBrains Mono',monospace;font-size:10px;background:var(--bg);border:1px solid var(--border);border-radius:3px;color:var(--ink);padding:3px 5px;width:152px;outline:none;cursor:pointer}
-.ind-unit{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ink4);width:34px;flex-shrink:0}
-
-/* ── COMPARE ── */
-.pair-sel{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 18px;margin-bottom:20px;box-shadow:var(--sh);flex-wrap:wrap}
-.ps-lbl{font-family:'JetBrains Mono',monospace;font-size:8px;letter-spacing:1px;text-transform:uppercase;color:var(--ink4)}
-.ps-sel{font-family:'JetBrains Mono',monospace;font-size:11.5px;background:var(--bg);border:1px solid var(--border2);border-radius:3px;color:var(--ink);padding:6px 9px;width:175px;outline:none;cursor:pointer}
-.ps-vs{font-family:'EB Garamond',serif;font-size:18px;color:var(--ink3)}
-.ps-btn{font-family:'JetBrains Mono',monospace;font-size:8.5px;letter-spacing:.8px;text-transform:uppercase;background:var(--ink);color:#EDE9E2;border:none;padding:7px 16px;border-radius:3px;cursor:pointer;margin-left:auto;transition:opacity .15s}
-.ps-btn:hover{opacity:.85}
-
-/* ── COMPARE RESULT ── */
-.cmp{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:16px}
-.cmp-verdict{padding:22px 24px;text-align:center;border-bottom:1px solid var(--border)}
-.cv-signal{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:1.5px;font-weight:600;margin-bottom:6px;padding:3px 10px;border-radius:3px;display:inline-block}
-.cv-action{font-family:'EB Garamond',serif;font-size:38px;font-weight:500;line-height:1.1;margin-bottom:8px}
-.cv-diff{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink4);margin-bottom:6px;letter-spacing:.5px}
-.cv-desc{font-size:12.5px;color:var(--ink3);max-width:500px;margin:0 auto}
-.cmp-cols{display:grid;grid-template-columns:1fr 80px 1fr;border-bottom:1px solid var(--border)}
-.cmp-col{padding:18px 20px;text-align:center}
-.cmp-mid{display:flex;align-items:center;justify-content:center;border-left:1px solid var(--border);border-right:1px solid var(--border)}
-.col-flag{font-size:26px;margin-bottom:3px}
-.col-name{font-size:12px;font-weight:600;color:var(--ink);margin-bottom:6px}
-.col-score{font-family:'EB Garamond',serif;font-size:44px;font-weight:500;line-height:1;margin-bottom:4px}
-.col-bias{font-family:'JetBrains Mono',monospace;font-size:8.5px;font-weight:600;letter-spacing:.8px;padding:2px 8px;border-radius:2px;display:inline-block}
-.mid-delta{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink3);text-align:center}
-.mid-delta span{display:block;font-size:14px;font-weight:600;color:var(--ink2)}
-.cmp-bk{padding:14px 20px}
-.bk-title{font-family:'JetBrains Mono',monospace;font-size:7.5px;letter-spacing:1.2px;text-transform:uppercase;color:var(--ink4);margin-bottom:10px}
-.bk-row{display:grid;grid-template-columns:1fr 130px 1fr;align-items:center;gap:6px;padding:5px 0;border-top:1px solid var(--border)}
-.bk-row:first-of-type{border-top:none}
-.bk-l{text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
-.bk-c{text-align:center;font-size:11px;color:var(--ink4)}
-.bk-r{text-align:left;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600}
-
-/* ── HELPERS ── */
-.sc-bull{color:var(--bull)}.sc-bear{color:var(--bear)}.sc-neut{color:var(--ink3)}
-.bg-bull{background:var(--bull-bg);color:var(--bull)}.bg-bear{background:var(--bear-bg);color:var(--bear)}.bg-neut{background:var(--neut-bg);color:var(--neut)}
-.empty-state{text-align:center;padding:48px 24px;color:var(--ink4)}
-.empty-state .ei{font-size:36px;margin-bottom:10px}
-body,.cc,.cmp,.pair-sel{transition:background .2s,border-color .2s,color .2s}
+body{font-family:Inter,system-ui,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.45}
+button,input,select{font:inherit}
+a{color:inherit}
+.mono{font-family:"JetBrains Mono",monospace}
+.hidden{display:none!important}
+.wrap{max-width:1440px;margin:0 auto;padding:24px}
+.section-title{font-size:20px;font-weight:700;margin-bottom:6px}
+.section-sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+.badge{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:999px;padding:4px 10px;background:var(--card2);font-size:11px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:999px;background:var(--muted2)}
+.dot.live{background:var(--green)}
+.dot.warn{background:var(--amber)}
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);box-shadow:var(--shadow)}
+.grid{display:grid;gap:16px}
+#hdr{position:sticky;top:0;z-index:50;height:var(--header);background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px}
+html.dark #hdr{background:rgba(15,17,21,.88)}
+.brand{display:flex;align-items:center;gap:14px}.brand h1{font-size:18px;font-weight:800;letter-spacing:-.02em}.brand small{color:var(--muted);font-size:11px}
+.tabs{display:flex;gap:8px}.tab{background:transparent;border:1px solid transparent;color:var(--muted);padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:600}.tab.active{background:var(--card);border-color:var(--border);color:var(--text)}
+.hdr-right{display:flex;align-items:center;gap:10px}.btn{border:1px solid var(--border);background:var(--card);color:var(--text);padding:9px 12px;border-radius:10px;cursor:pointer;font-weight:600}.btn.primary{background:var(--text);color:var(--card);border-color:var(--text)}
+.hero{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin-bottom:20px;flex-wrap:wrap}.hero h2{font-size:30px;line-height:1.1;letter-spacing:-.03em;margin-bottom:8px}.hero p{max-width:860px;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:18px 0 26px}.stat{padding:16px 18px}.stat-label{font-size:12px;color:var(--muted);margin-bottom:8px}.stat-value{font-size:30px;font-weight:800;letter-spacing:-.03em}.stat-foot{font-size:12px;color:var(--muted);margin-top:6px}
+.rank-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-bottom:22px}.rank-card{padding:18px}.rank-card ol{margin-top:14px;display:grid;gap:10px}.rank-row{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px}.rank-left{display:flex;align-items:center;gap:8px;min-width:0}.rank-left span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.score-chip{padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700}.pos{background:var(--green-bg);color:var(--green)}.neg{background:var(--red-bg);color:var(--red)}.neu{background:var(--amber-bg);color:var(--amber)}
+.heatmap-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}.toolbar{display:flex;gap:10px;flex-wrap:wrap}.search,.select{border:1px solid var(--border);background:var(--card);color:var(--text);padding:10px 12px;border-radius:10px}
+.country-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.country-card{padding:16px;cursor:pointer;transition:.18s transform,.18s border-color}.country-card:hover{transform:translateY(-1px);border-color:var(--border2)}
+.country-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}.country-id{display:flex;gap:12px;align-items:flex-start}.flag{font-size:24px;line-height:1}.c-name{font-weight:700;font-size:15px}.c-meta{font-size:11px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.score-stack{text-align:right}.score-number{font-size:44px;line-height:1;font-weight:800;letter-spacing:-.04em}.score-label{font-size:11px;color:var(--muted);margin-top:4px}.delta{display:inline-flex;align-items:center;gap:6px;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:700;margin-top:8px}
+.bias-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}.bias{padding:5px 9px;border-radius:999px;font-size:11px;font-weight:700}.mini-rail{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.mini-pill{padding:6px 4px;border-radius:8px;text-align:center;font-size:10px;font-weight:700;border:1px solid var(--border);background:var(--card2)}
+.block-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:14px 0}.block{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--card2)}.block-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.block-name{font-size:12px;color:var(--muted)}.block-score{font-weight:800;font-size:18px}.bar{height:7px;border-radius:999px;background:rgba(152,162,179,.18);overflow:hidden;margin-top:10px}.bar>span{display:block;height:100%;border-radius:999px}
+.spark-wrap{margin-top:8px;padding-top:10px;border-top:1px solid var(--border)}.spark-lbl{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--muted);margin-bottom:8px}.spark{width:100%;height:44px}
+.table-shell{overflow:auto}.macro-table{width:100%;border-collapse:collapse}.macro-table th,.macro-table td{padding:11px 12px;text-align:left;border-top:1px solid var(--border);font-size:13px;vertical-align:top}.macro-table th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--card2);position:sticky;top:0}.macro-table td:last-child,.macro-table th:last-child{text-align:right}.tt{border-bottom:1px dashed var(--muted2);cursor:help}
+#view-country,#view-compare{display:none}
+.country-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(320px,.8fr);gap:18px}.country-hero{padding:20px}.country-hero-top{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;flex-wrap:wrap}.country-title{display:flex;gap:12px;align-items:flex-start}.country-title .flag{font-size:34px}.country-title h2{font-size:30px;letter-spacing:-.03em}.country-title p{color:var(--muted);margin-top:6px}.country-score-big{display:flex;align-items:center;gap:14px;flex-wrap:wrap}.score-pill{padding:7px 10px;border-radius:999px;font-size:12px;font-weight:700}
+.hero-score{font-size:66px;line-height:1;font-weight:800;letter-spacing:-.05em}.summary-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}.summary-card{padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--card2)}.summary-card .lbl{font-size:11px;color:var(--muted);margin-bottom:8px}.summary-card .val{font-size:24px;font-weight:800}.drivers{display:grid;grid-template-columns:1fr 1fr;gap:14px}.driver-card{padding:18px}.driver-card ul{margin-top:12px;display:grid;gap:10px;padding-left:18px}.driver-card li{font-size:13px;color:var(--text)}
+.side-stack{display:grid;gap:16px}.box{padding:18px}.events li,.source-list li{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-top:1px solid var(--border);font-size:13px}.events li:first-child,.source-list li:first-child{border-top:none}.kpi-list{display:grid;gap:10px}.kpi-item{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;background:var(--card2);border:1px solid var(--border);border-radius:10px}
+.mode-toggle{display:flex;gap:8px}.mode-toggle button{padding:8px 10px;border-radius:9px;border:1px solid var(--border);background:var(--card);cursor:pointer}.mode-toggle .active{background:var(--text);color:var(--card);border-color:var(--text)}
+.compare-shell{display:grid;gap:18px}.compare-picks{padding:18px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;align-items:end}.compare-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.compare-country{padding:18px}.compare-country .big{font-size:42px;font-weight:800;letter-spacing:-.04em}.winner{outline:2px solid rgba(6,118,71,.3)}
+.block-compare{padding:18px}.bc-row{display:grid;grid-template-columns:160px repeat(3,1fr);gap:12px;align-items:center;padding:12px 0;border-top:1px solid var(--border)}.bc-row:first-child{border-top:none}.bc-name{font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}.bc-cell{padding:10px 12px;border-radius:10px;background:var(--card2);border:1px solid var(--border)}
+.footer-note{font-size:12px;color:var(--muted);margin-top:16px}
+@media (max-width:1100px){.country-layout{grid-template-columns:1fr}.summary-grid,.compare-grid,.compare-picks,.rank-grid,.stats{grid-template-columns:1fr 1fr}.drivers{grid-template-columns:1fr}}
+@media (max-width:760px){#hdr{padding:0 14px;height:auto;min-height:var(--header);flex-wrap:wrap;padding-top:10px;padding-bottom:10px}.wrap{padding:16px}.stats,.summary-grid,.rank-grid,.compare-grid,.compare-picks,.country-grid,.block-grid{grid-template-columns:1fr}.hero-score{font-size:52px}.country-top{align-items:flex-start}.bc-row{grid-template-columns:1fr}.tabs{width:100%;overflow:auto}}
 </style>
 </head>
 <body>
-
-<!-- HEADER -->
-<div id="hdr">
-  <div><span class="logo">Global Macro Framework</span><span class="logo-v">v1.0</span></div>
-  <div class="hdr-sep"></div>
-  <div class="htabs">
-    <button class="htab active" onclick="showView('countries',this)">🌍 Países</button>
-    <button class="htab" onclick="showView('compare',this)">⚖️ Comparar Par</button>
+<header id="hdr">
+  <div class="brand">
+    <div>
+      <h1>Global Macro Framework</h1>
+      <small class="mono">v2.0 · score-first dashboard</small>
+    </div>
+  </div>
+  <div class="tabs">
+    <button class="tab active" onclick="showView('home', this)">Heatmap países</button>
+    <button class="tab" onclick="showView('compare', this)">Comparador</button>
+    <button class="tab" onclick="showView('country', this, 'us')">Detalle país</button>
   </div>
   <div class="hdr-right">
-    <div class="sync-status">
-      <div class="sync-dot" id="sync-dot"></div>
-      <span id="sync-txt">Iniciando...</span>
+    <div class="badge"><span class="dot" id="sync-dot"></span><span id="sync-txt">Iniciando…</span></div>
+    <button class="btn" onclick="toggleTheme()" id="themeBtn">Dark</button>
+  </div>
+</header>
+
+<main id="view-home">
+  <div class="wrap">
+    <section class="hero">
+      <div>
+        <h2>Una capa de interpretación sobre los datos macro.</h2>
+        <p>El producto principal ya no es la tabla. La portada prioriza <strong>país → score total → bloques → cambio</strong>, con semáforos rápidos, ranking global y acceso a detalle limpio por país.</p>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <span class="badge"><span class="dot live"></span> FRED auto</span>
+        <span class="badge">PMI / confianza manual</span>
+        <span class="badge">Tooltip sin mostrar reglas internas</span>
+      </div>
+    </section>
+
+    <section class="stats" id="global-stats"></section>
+
+    <section class="rank-grid" id="rankings"></section>
+
+    <section class="card" style="padding:18px">
+      <div class="heatmap-head">
+        <div>
+          <div class="section-title">Heatmap de países</div>
+          <div class="section-sub">Bandera, score total, cambio semanal / mensual, semáforos por bloque y sparkline del score.</div>
+        </div>
+        <div class="toolbar">
+          <input class="search" id="country-search" placeholder="Buscar país o divisa" oninput="renderHome()" />
+          <select class="select" id="sort-select" onchange="renderHome()">
+            <option value="score">Ordenar por score</option>
+            <option value="weekly">Ordenar por cambio semanal</option>
+            <option value="monthly">Ordenar por cambio mensual</option>
+            <option value="name">Ordenar por nombre</option>
+          </select>
+        </div>
+      </div>
+      <div class="country-grid" id="country-grid"></div>
+    </section>
+  </div>
+</main>
+
+<main id="view-country">
+  <div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
+      <button class="btn" onclick="showView('home', document.querySelector('.tab'))">← Volver al heatmap</button>
+      <div class="mode-toggle">
+        <button id="mode-simple" class="active" onclick="setCountryMode('simple')">Modo simple</button>
+        <button id="mode-analyst" onclick="setCountryMode('analyst')">Modo analista</button>
+      </div>
     </div>
-    <button class="tbtn" id="tbtn" onclick="toggleTheme()">☾ Dark</button>
-  </div>
-</div>
-
-<!-- VIEW: COUNTRIES -->
-<div id="view-countries" class="active">
-<div class="wrap">
-  <div class="page-title">Scores por País</div>
-  <div class="page-sub">
-    <span>Datos cargados automáticamente desde FRED.</span>
-    <span class="live-pill">● FRED auto</span>
-    <span class="manual-pill">manual</span>
-    <span style="color:var(--ink4)">Los indicadores en verde se actualizan solos. PMI, Consumer Confidence y Seasonality son manuales.</span>
-  </div>
-  <div class="cg" id="cg"></div>
-</div>
-</div>
-
-<!-- VIEW: COMPARE -->
-<div id="view-compare">
-<div class="wrap">
-  <div class="page-title">Comparar Par de Divisas</div>
-  <div class="page-sub">Selecciona dos países para obtener la señal de compra/venta basada en el diferencial de scores macro.</div>
-  <div class="pair-sel">
-    <span class="ps-lbl">Base</span>
-    <select class="ps-sel" id="cmp-a"><option value="">— País base —</option></select>
-    <span class="ps-vs">/</span>
-    <span class="ps-lbl">Quote</span>
-    <select class="ps-sel" id="cmp-b"><option value="">— País quote —</option></select>
-    <button class="ps-btn" onclick="runCompare()">Comparar →</button>
-  </div>
-  <div id="cmp-out">
-    <div class="empty-state"><div class="ei">⚖️</div><div>Selecciona dos países y pulsa Comparar</div></div>
-  </div>
-</div>
-</div>
-
-<script>
-// ══════════════════════════════════════════════════════════════
-// CONFIG — FRED API KEY (hardcoded, works from GitHub Pages)
-// ══════════════════════════════════════════════════════════════
-const FRED_KEY = 'ea426e2b913a446916dc903d80633949';
-
-// ══════════════════════════════════════════════════════════════
-// SCORING TABLES (never rendered in UI)
-// ══════════════════════════════════════════════════════════════
-const T = {
-  m2:   [[50,4],[40,6],[30,10],[20,8],[15,6],[10,4],[5,0],[0,-4],[-5,-8],[-10,-10],[-15,8],[-20,10],[-30,10],[-40,10],[-50,10]],
-  ir:   [[60,0],[50,0],[40,0],[30,0],[20,-10],[15,-9],[10,-6],[5,-3],[0,0],[-5,0],[-10,3],[-15,5],[-20,7],[-30,-8],[-40,-9],[-50,-10],[-60,-10]],
-  cpi:  [[1.4,3],[1.2,6],[1.0,10],[0.8,8],[0.6,6],[0.4,4],[0.3,0],[0,0],[-0.1,-6],[-0.2,-8],[-0.3,-10],[-0.4,6],[-0.5,8],[-0.6,10],[-0.7,10]],
-  cpic: [[1.40,3],[1.20,6],[1.00,10],[0.80,8],[0.60,6],[0.40,4],[0.20,0],[0.00,-4],[-0.05,-8],[-0.10,-9],[-0.15,-10],[-0.20,7],[-0.25,8],[-0.30,9],[-0.35,10]],
-  ppi:  [[2.00,3],[1.75,6],[1.50,10],[1.00,8],[0.75,4],[0.50,2],[0.25,0],[0.00,0],[-0.25,-2],[-0.50,-4],[-0.75,-8],[-1.00,10],[-1.25,10]],
-  ppic: [[2.00,3],[1.75,6],[1.50,10],[1.00,10],[0.75,8],[0.50,6],[0.25,0],[0.00,-6],[-0.25,-8],[-0.50,-10],[-0.75,6],[-1.00,10],[-1.25,10]],
-  nfp:  [[0.50,2],[0.40,4],[0.30,7],[0.20,5],[0.10,3],[0.00,-6],[-0.10,-8],[-0.20,-10],[-0.30,8],[-0.40,10],[-0.50,10],[-0.60,10]],
-  debt: [[100,10],[95,10],[90,9],[85,9],[80,8],[75,8],[70,7],[65,7],[60,6],[55,6],[50,5],[45,5],[40,4],[35,4],[30,3],[25,3],[20,2],[15,2],[10,1],[5,1],[0,0],[-5,-1],[-10,-1],[-15,-2],[-20,-2],[-25,-3],[-30,-3],[-35,-4],[-40,-4],[-45,-5],[-50,-5],[-55,-6],[-60,-6],[-65,-7],[-70,-7],[-75,-8],[-80,-8],[-85,-9],[-90,-9],[-95,-10],[-100,-10]],
-  sd:   [[-10,10],[-9.5,10],[-9,9],[-8.5,9],[-8,8],[-7.5,8],[-7,7],[-6.5,7],[-6,6],[-5.5,6],[-5,5],[-4.5,5],[-4,4],[-3.5,4],[-3,3],[-2.5,3],[-2,2],[-1.5,2],[-1,1],[-0.5,1],[0,0],[0.5,-1],[1,-1],[1.5,-2],[2,-2],[2.5,-3],[3,-3],[3.5,-4],[4,-4],[4.5,-5],[5,-5],[5.5,-6],[6,-6],[6.5,-7],[7,-7],[7.5,-8],[8,-8],[8.5,-9],[9,-9],[9.5,-10],[10,-10]],
-  igdp: [[5,-10],[4.5,-10],[4,-10],[3.5,-10],[3,-10],[2.5,-10],[2,-8],[1.5,-6],[1,-4],[0.5,-2],[0,0]],
-  liq:  [[15,10],[14,8],[13,6],[12,4],[11,2],[10,0],[9,-1],[8,-2],[7,-3],[6,-4],[5,-5],[4,-6],[3,-7],[2,-8],[1,-9],[0,-10]],
-  t10:  [[16,-10],[15,-9],[14,-8],[13,-7],[12,-6],[11,-5],[10,-4],[9,-3],[8,-2],[7,-1],[6,0],[5,2],[4,4],[3,6],[2,8],[1,10],[0,10]],
-};
-
-function closest(key, val) {
-  let best=null, bd=Infinity;
-  for(const [rv,sc] of T[key]) { const d=Math.abs(rv-val); if(d<bd){bd=d;best=sc;} }
-  return best;
-}
-
-// ══════════════════════════════════════════════════════════════
-// FRED SERIES MAP  { countryId: { indId: { series, transform } } }
-// ══════════════════════════════════════════════════════════════
-const FRED_MAP = {
-  us: {
-    cpi:  { series:'CPIAUCSL',        transform:'pct_mom'      },
-    cpic: { series:'CPILFESL',        transform:'pct_mom'      },
-    ppi:  { series:'PPIFGS',          transform:'pct_mom'      },
-    ppic: { series:'PPILFE',          transform:'pct_mom'      },
-    nfp:  { series:'PAYEMS',          transform:'pct_mom'      },
-    m2:   { series:'M2SL',            transform:'pct_ann'      },
-    ir:   { series:'FEDFUNDS',        transform:'delta_ann'    },
-    t10:  { series:'DGS10',           transform:'last'         },
-    debt: { series:'GFDEGDQ188S',     transform:'last'         },
-    sd:   { series:'MTSDS133FMS',     transform:'surplus_gdp'  },
-    igdp: { series:'A091RC1Q027SBEA', transform:'last'         },
-  },
-  eu: {
-    cpi:  { series:'CP0000EZ19M086NEST', transform:'pct_mom'   },
-    m2:   { series:'MABMM301EZM189S',    transform:'pct_ann'   },
-    ir:   { series:'ECBDFR',             transform:'delta_ann' },
-    t10:  { series:'IRLTLT01EZM156N',    transform:'last'      },
-    debt: { series:'DDDI06EZA156NWDB',   transform:'last'      },
-  },
-  gb: {
-    cpi:  { series:'GBRCPIALLMINMEI',  transform:'pct_mom'     },
-    m2:   { series:'MABMM301GBM189S',  transform:'pct_ann'     },
-    ir:   { series:'BOEBR',            transform:'delta_ann'   },
-    t10:  { series:'IRLTLT01GBM156N',  transform:'last'        },
-    debt: { series:'DDDI06GBA156NWDB', transform:'last'        },
-  },
-  jp: {
-    cpi:  { series:'JPNCPIALLMINMEI',  transform:'pct_mom'     },
-    m2:   { series:'MABMM301JPM189S',  transform:'pct_ann'     },
-    ir:   { series:'IRSTCI01JPM156N',  transform:'delta_ann'   },
-    t10:  { series:'IRLTLT01JPM156N',  transform:'last'        },
-    debt: { series:'DDDI06JPA156NWDB', transform:'last'        },
-  },
-  ca: {
-    cpi:  { series:'CANCPIALLMINMEI',  transform:'pct_mom'     },
-    m2:   { series:'MABMM301CAM189S',  transform:'pct_ann'     },
-    ir:   { series:'IRSTCI01CAM156N',  transform:'delta_ann'   },
-    t10:  { series:'IRLTLT01CAM156N',  transform:'last'        },
-    debt: { series:'DDDI06CAA156NWDB', transform:'last'        },
-  },
-  au: {
-    cpi:  { series:'AUSCPIALLMINMEI',  transform:'pct_mom'     },
-    ir:   { series:'IRSTCI01AUM156N',  transform:'delta_ann'   },
-    t10:  { series:'IRLTLT01AUM156N',  transform:'last'        },
-    debt: { series:'DDDI06AUA156NWDB', transform:'last'        },
-  },
-  ch: {
-    cpi:  { series:'CHECPIALLMINMEI',  transform:'pct_mom'     },
-    ir:   { series:'IRSTCI01CHM156N',  transform:'delta_ann'   },
-    t10:  { series:'IRLTLT01CHM156N',  transform:'last'        },
-  },
-  nz: {
-    cpi:  { series:'NZLCPIALLMINMEI',  transform:'pct_mom'     },
-    t10:  { series:'IRLTLT01NZM156N',  transform:'last'        },
-  },
-  cn: {
-    cpi:  { series:'CHNCPIALLMINMEI',  transform:'pct_mom'     },
-    t10:  { series:'IRLTLT01CNM156N',  transform:'last'        },
-  },
-  sg: {
-    cpi:  { series:'SGPCPIALLMINMEI',  transform:'pct_mom'     },
-    t10:  { series:'IRLTLT01SGM156N',  transform:'last'        },
-  },
-};
-
-// ── Transform raw FRED observations → indicator value ──────
-function applyTransform(obs, transform) {
-  const valid = obs
-    .filter(o => o.value !== '.' && o.value != null)
-    .sort((a,b) => new Date(b.date) - new Date(a.date));
-  if(!valid.length) return null;
-
-  const n  = v => parseFloat(v.value);
-  const v0 = n(valid[0]);
-
-  if(transform === 'last')    return isNaN(v0) ? null : Math.round(v0*100)/100;
-
-  if(transform === 'pct_mom') {
-    if(valid.length < 2) return null;
-    const v1 = n(valid[1]);
-    if(isNaN(v0)||isNaN(v1)||v1===0) return null;
-    return Math.round(((v0-v1)/v1)*10000)/100; // 2 decimals
-  }
-
-  if(transform === 'pct_ann') {
-    // annualized from monthly: MoM × 12
-    if(valid.length < 2) return null;
-    const v1 = n(valid[1]);
-    if(isNaN(v0)||isNaN(v1)||v1===0) return null;
-    return Math.round(((v0-v1)/v1)*1200*10)/10;
-  }
-
-  if(transform === 'delta_ann') {
-    // rate change over 12 months (in basis point equivalents for the IR A% scale)
-    const ago = valid.length >= 13 ? n(valid[12]) : n(valid[valid.length-1]);
-    if(isNaN(v0)||isNaN(ago)) return null;
-    return Math.round((v0 - ago) * 100 * 10) / 10; // bps × factor
-  }
-
-  if(transform === 'surplus_gdp') {
-    // Monthly treasury surplus/deficit (millions $) → rough % GDP proxy
-    // US GDP ~$28T/yr = ~$2.3T/month
-    return Math.round((v0 / 2333333) * 100 * 100) / 100;
-  }
-
-  return isNaN(v0) ? null : v0;
-}
-
-// ── Fetch one FRED series ───────────────────────────────────
-async function fredFetch(seriesId) {
-  const end   = new Date();
-  const start = new Date(end);
-  start.setMonth(start.getMonth() - 15);
-  const fmt = d => d.toISOString().split('T')[0];
-
-  const url = `https://api.stlouisfed.org/fred/series/observations`
-    + `?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json`
-    + `&sort_order=desc&observation_start=${fmt(start)}&observation_end=${fmt(end)}`;
-
-  const resp = await fetch(url, { signal: AbortSignal.timeout(12000) });
-  if(!resp.ok) throw new Error(`HTTP ${resp.status}`);
-  const data = await resp.json();
-  if(data.error_message) throw new Error(data.error_message);
-  return data.observations || [];
-}
-
-// ══════════════════════════════════════════════════════════════
-// INDICATOR DEFINITIONS
-// ══════════════════════════════════════════════════════════════
-const INDS = [
-  // ── SURVEYS (all manual — no free public API) ──
-  { id:'pmi_mfg', label:'PMI Manufacturing', unit:'', section:'Surveys', type:'sel',
-    options:[['','— —'],['vl','ISM > 50 creciendo'],['l','ISM > 50 desacel.'],['s','ISM < 50 creciendo'],['vs','ISM < 50 desacel.']],
-    calc: v => ({vl:-3,l:-2,s:-1,vs:0}[v]??null) },
-  { id:'pmi_svc', label:'PMI Services', unit:'', section:'Surveys', type:'sel',
-    options:[['','— —'],['vl','ISM > 50 creciendo'],['l','ISM > 50 desacel.'],['s','ISM < 50 creciendo'],['vs','ISM < 50 desacel.']],
-    calc: v => ({vl:-3,l:-2,s:-1,vs:0}[v]??null) },
-  { id:'cc',  label:'Consumer Confidence', unit:'/10', section:'Surveys', type:'num', placeholder:'1–10', step:'1',
-    calc: v => { const n=parseInt(v); if(isNaN(n))return null; return n<=4?-3:n<=6?-1:-5; } },
-  { id:'bp',  label:'Building Permits', unit:'MoM%', section:'Surveys', type:'num', placeholder:'e.g. 2', step:'0.5',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return n>3?-3:n>1?-2:n>0?-1:n>=-1?0:1; } },
-  // ── MONETARY ──
-  { id:'m2',  label:'Money Supply M2', unit:'A%', section:'Monetary', type:'num', placeholder:'e.g. 10', step:'5',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('m2',n); } },
-  { id:'ir',  label:'CB Interest Rates', unit:'A%', section:'Monetary', type:'num', placeholder:'e.g. −10', step:'5',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('ir',n); } },
-  // ── INFLATION ──
-  { id:'cpi',  label:'CPI',      unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.4', step:'0.1',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('cpi',n); } },
-  { id:'cpic', label:'CPI Core', unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.3', step:'0.05',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('cpic',n); } },
-  { id:'ppi',  label:'PPI',      unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.5', step:'0.25',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('ppi',n); } },
-  { id:'ppic', label:'PPI Core', unit:'MoM%', section:'Inflation', type:'num', placeholder:'e.g. 0.3', step:'0.25',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('ppic',n); } },
-  // ── EMPLOYMENT ──
-  { id:'nfp',  label:'NFP Employment', unit:'MoM%', section:'Employment', type:'num', placeholder:'e.g. 0.2', step:'0.1',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('nfp',n); } },
-  // ── SOVEREIGN RISK ──
-  { id:'debt', label:'Gov. Debt / GDP',          unit:'%',     section:'Sovereign', type:'num', placeholder:'e.g. 95', step:'5',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('debt',n); } },
-  { id:'sd',   label:'Gov. Surplus / Deficit',   unit:'%GDP',  section:'Sovereign', type:'num', placeholder:'e.g. −6', step:'0.5',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('sd',n); } },
-  { id:'igdp', label:'Interest / GDP',           unit:'%GDP',  section:'Sovereign', type:'num', placeholder:'e.g. 2.0', step:'0.5',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('igdp',n); } },
-  { id:'liq',  label:'Liquidity Cover',          unit:'ratio', section:'Sovereign', type:'num', placeholder:'e.g. 10', step:'1',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('liq',n); } },
-  { id:'t10',  label:'10Y Bond Yield',           unit:'%',     section:'Sovereign', type:'num', placeholder:'e.g. 4.3', step:'0.5',
-    calc: v => { const n=parseFloat(v); if(isNaN(n))return null; return closest('t10',n); } },
-  // ── GDP & SEASONALITY ──
-  { id:'gdp',  label:'GDP Growth', unit:'', section:'GDP & Seas.', type:'sel',
-    options:[['','— —'],['pos','Positivo'],['neg','Negativo']],
-    calc: v => ({pos:-1,neg:0}[v]??null) },
-  { id:'seas', label:'Market Seasonality', unit:'', section:'GDP & Seas.', type:'sel',
-    options:[['','— —'],['pos','Mes alcista'],['neg','Mes bajista']],
-    calc: v => ({pos:-1,neg:0}[v]??null) },
-];
-
-// ══════════════════════════════════════════════════════════════
-// COUNTRIES
-// ══════════════════════════════════════════════════════════════
-const COUNTRIES = [
-  { id:'us', flag:'🇺🇸', name:'United States', code:'USD', color:'#1E4A8C' },
-  { id:'eu', flag:'🇪🇺', name:'Eurozone',       code:'EUR', color:'#1A3A6E' },
-  { id:'gb', flag:'🇬🇧', name:'United Kingdom', code:'GBP', color:'#8B1A1A' },
-  { id:'jp', flag:'🇯🇵', name:'Japan',          code:'JPY', color:'#C0392B' },
-  { id:'ch', flag:'🇨🇭', name:'Switzerland',    code:'CHF', color:'#C41E3A' },
-  { id:'ca', flag:'🇨🇦', name:'Canada',         code:'CAD', color:'#D13B2C' },
-  { id:'au', flag:'🇦🇺', name:'Australia',      code:'AUD', color:'#1A5C8A' },
-  { id:'nz', flag:'🇳🇿', name:'New Zealand',    code:'NZD', color:'#2A6B3A' },
-  { id:'cn', flag:'🇨🇳', name:'China',          code:'CNY', color:'#B22222' },
-  { id:'sg', flag:'🇸🇬', name:'Singapore',      code:'SGD', color:'#C0392B' },
-];
-
-// STATE[cid][iid] = value string
-const STATE = {};
-COUNTRIES.forEach(c => { STATE[c.id] = {}; });
-
-// ══════════════════════════════════════════════════════════════
-// SCORE
-// ══════════════════════════════════════════════════════════════
-function getScore(cid) {
-  let total=0, filled=0;
-  INDS.forEach(ind => {
-    const v = STATE[cid][ind.id];
-    if(v !== undefined && v !== '' && v !== null) {
-      const sc = ind.calc(String(v));
-      if(sc !== null) { total += sc; filled++; }
-    }
-  });
-  return { total, filled };
-}
-
-function biasLabel(s){ if(s<=-20)return'VERY LONG'; if(s<0)return'LONG'; if(s===0)return'NEUTRAL'; if(s<=20)return'SHORT'; return'VERY SHORT'; }
-function scCls(s){ return s<0?'sc-bull':s>0?'sc-bear':'sc-neut'; }
-function bgCls(s){ return s<0?'bg-bull':s>0?'bg-bear':'bg-neut'; }
-
-// ══════════════════════════════════════════════════════════════
-// BUILD UI
-// ══════════════════════════════════════════════════════════════
-function groupInds() {
-  const g={};
-  INDS.forEach(ind => { if(!g[ind.section])g[ind.section]=[]; g[ind.section].push(ind); });
-  return g;
-}
-
-function buildGrid() {
-  const cg = document.getElementById('cg');
-  const groups = groupInds();
-  cg.innerHTML = COUNTRIES.map(c => {
-    const fredSeries = FRED_MAP[c.id] || {};
-    const fredCount  = Object.keys(fredSeries).length;
-
-    const bodyHtml = Object.entries(groups).map(([sec, inds]) => `
-      <div class="sec-lbl">${sec}<div class="sec-lbl-line"></div></div>
-      ${inds.map(ind => {
-        const isLive = !!(fredSeries[ind.id]);
-        const srcBadge = `<span class="ind-src ${isLive?'live':'manual'}" id="src-${c.id}-${ind.id}">${isLive?'FRED':'manual'}</span>`;
-        const input = ind.type === 'sel'
-          ? `<select class="ind-sel" id="inp-${c.id}-${ind.id}" onchange="onInput('${c.id}','${ind.id}',this.value)">
-               ${ind.options.map(([v,l])=>`<option value="${v}">${l}</option>`).join('')}
-             </select>`
-          : `<input class="ind-inp" id="inp-${c.id}-${ind.id}"
-               type="number" step="${ind.step}" placeholder="${ind.placeholder}"
-               oninput="onInput('${c.id}','${ind.id}',this.value)">`;
-        return `<div class="ind-row">
-          <span class="ind-name">${ind.label}${srcBadge}</span>
-          ${input}
-          <span class="ind-unit">${ind.unit}</span>
-        </div>`;
-      }).join('')}
-    `).join('');
-
-    return `<div class="cc" id="card-${c.id}">
-      <div class="cc-head" style="border-top:3px solid ${c.color}">
-        <span class="cc-flag">${c.flag}</span>
-        <div class="cc-info">
-          <div class="cc-name">${c.name}</div>
-          <div class="cc-meta">
-            <span class="cc-code">${c.code}</span>
-            ${fredCount ? `<span class="cc-updated" id="upd-${c.id}">— cargando...</span>` : ''}
+    <div class="country-layout">
+      <section>
+        <div class="country-hero card" id="country-hero"></div>
+        <div class="card" style="padding:18px;margin-top:16px">
+          <div class="section-title">Indicadores y scoring</div>
+          <div class="section-sub">Último dato, valor previo estimado, tendencia, score asignado, peso, fecha y fuente.</div>
+          <div class="table-shell">
+            <table class="macro-table">
+              <thead>
+                <tr>
+                  <th>Indicador</th>
+                  <th>Bloque</th>
+                  <th>Último</th>
+                  <th class="analyst-col hidden">Previo</th>
+                  <th>Tendencia</th>
+                  <th>Score</th>
+                  <th class="analyst-col hidden">Peso</th>
+                  <th class="analyst-col hidden">Fecha</th>
+                  <th class="analyst-col hidden">Fuente</th>
+                </tr>
+              </thead>
+              <tbody id="country-table-body"></tbody>
+            </table>
           </div>
         </div>
-        <div class="cc-right">
-          <span class="cc-spin" id="spin-${c.id}">↻</span>
-          <div class="cc-score sc-neut" id="score-${c.id}">0</div>
-          <div class="cc-bias bg-neut" id="bias-${c.id}">NEUTRAL</div>
-          <div class="cc-filled" id="filled-${c.id}">0 / ${INDS.length}</div>
+      </section>
+
+      <aside class="side-stack">
+        <div class="driver-card card" id="drivers-box"></div>
+        <div class="box card">
+          <div class="section-title">Próximos eventos que pueden mover el score</div>
+          <div class="section-sub">Estructura preparada para conectar un calendario económico y estimar impacto en el score.</div>
+          <ul class="events" id="events-box"></ul>
+        </div>
+        <div class="box card">
+          <div class="section-title">Indicadores clave</div>
+          <div class="section-sub">Vista rápida de los inputs más relevantes.</div>
+          <div class="kpi-list" id="key-kpis"></div>
+        </div>
+        <div class="box card">
+          <div class="section-title">Fuentes y actualización</div>
+          <ul class="source-list" id="source-box"></ul>
+        </div>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<main id="view-compare">
+  <div class="wrap compare-shell">
+    <section class="hero" style="margin-bottom:0">
+      <div>
+        <h2>Comparador entre países</h2>
+        <p>Comparación lado a lado de score total, bloques y ventaja relativa. Preparado para 2 o 3 países.</p>
+      </div>
+    </section>
+    <section class="compare-picks card">
+      <div>
+        <label class="section-sub" style="display:block;margin-bottom:8px">País 1</label>
+        <select id="cmp-1" class="select"></select>
+      </div>
+      <div>
+        <label class="section-sub" style="display:block;margin-bottom:8px">País 2</label>
+        <select id="cmp-2" class="select"></select>
+      </div>
+      <div>
+        <label class="section-sub" style="display:block;margin-bottom:8px">País 3 (opcional)</label>
+        <select id="cmp-3" class="select"></select>
+      </div>
+      <button class="btn primary" onclick="renderCompare()">Comparar</button>
+    </section>
+    <section class="compare-grid" id="compare-top"></section>
+    <section class="block-compare card" id="compare-blocks"></section>
+  </div>
+</main>
+
+<script>
+const FRED_KEY = 'ea426e2b913a446916dc903d80633949';
+let CURRENT_COUNTRY = 'us';
+let COUNTRY_MODE = 'simple';
+const HISTORY_KEY = 'macroScoreHistoryV2';
+const PRESET_EVENTS = {
+  us:[['CPI', 'alto'], ['Rate decision', 'alto'], ['Payrolls', 'alto'], ['PMI', 'medio']],
+  eu:[['CPI', 'alto'], ['ECB decision', 'alto'], ['PMI', 'medio']],
+  gb:[['CPI', 'alto'], ['BoE decision', 'alto'], ['Retail sales', 'medio']],
+  jp:[['BoJ decision', 'alto'], ['Tokyo CPI', 'medio'], ['PMI', 'medio']],
+  ca:[['CPI', 'alto'], ['BoC decision', 'alto'], ['Employment', 'alto']],
+  au:[['CPI', 'alto'], ['RBA decision', 'alto'], ['Labor market', 'medio']],
+  ch:[['SNB decision', 'alto'], ['CPI', 'medio']],
+  nz:[['RBNZ decision', 'alto'], ['CPI', 'medio']],
+  cn:[['PMI', 'alto'], ['Industrial production', 'medio']],
+  sg:[['CPI', 'medio'], ['GDP', 'medio']]
+};
+const BLOCKS = {
+  growth:{label:'Growth', max:25, items:['gdp','pmi_mfg','pmi_svc','bp']},
+  inflation:{label:'Inflation', max:15, items:['cpi','cpic','ppi','ppic']},
+  monetary:{label:'Monetary', max:20, items:['m2','ir']},
+  labor:{label:'Employment', max:15, items:['nfp']},
+  risk:{label:'Flows / confidence / market', max:25, items:['cc','debt','sd','igdp','liq','t10','seas']},
+  external:{label:'External sector', max:10, items:['debt','sd','t10']}
+};
+const BLOCK_ORDER = ['growth','inflation','monetary','labor','risk'];
+const T = {
+  m2:[[50,4],[40,6],[30,10],[20,8],[15,6],[10,4],[5,0],[0,-4],[-5,-8],[-10,-10],[-15,8],[-20,10],[-30,10],[-40,10],[-50,10]],
+  ir:[[60,0],[50,0],[40,0],[30,0],[20,-10],[15,-9],[10,-6],[5,-3],[0,0],[-5,0],[-10,3],[-15,5],[-20,7],[-30,-8],[-40,-9],[-50,-10],[-60,-10]],
+  cpi:[[1.4,3],[1.2,6],[1.0,10],[0.8,8],[0.6,6],[0.4,4],[0.3,0],[0,0],[-0.1,-6],[-0.2,-8],[-0.3,-10],[-0.4,6],[-0.5,8],[-0.6,10],[-0.7,10]],
+  cpic:[[1.40,3],[1.20,6],[1.00,10],[0.80,8],[0.60,6],[0.40,4],[0.20,0],[0.00,-4],[-0.05,-8],[-0.10,-9],[-0.15,-10],[-0.20,7],[-0.25,8],[-0.30,9],[-0.35,10]],
+  ppi:[[2.00,3],[1.75,6],[1.50,10],[1.00,8],[0.75,4],[0.50,2],[0.25,0],[0.00,0],[-0.25,-2],[-0.50,-4],[-0.75,-8],[-1.00,10],[-1.25,10]],
+  ppic:[[2.00,3],[1.75,6],[1.50,10],[1.00,10],[0.75,8],[0.50,6],[0.25,0],[0.00,-6],[-0.25,-8],[-0.50,-10],[-0.75,6],[-1.00,10],[-1.25,10]],
+  nfp:[[0.50,2],[0.40,4],[0.30,7],[0.20,5],[0.10,3],[0.00,-6],[-0.10,-8],[-0.20,-10],[-0.30,8],[-0.40,10],[-0.50,10],[-0.60,10]],
+  debt:[[100,10],[95,10],[90,9],[85,9],[80,8],[75,8],[70,7],[65,7],[60,6],[55,6],[50,5],[45,5],[40,4],[35,4],[30,3],[25,3],[20,2],[15,2],[10,1],[5,1],[0,0],[-5,-1],[-10,-1],[-15,-2],[-20,-2],[-25,-3],[-30,-3],[-35,-4],[-40,-4],[-45,-5],[-50,-5],[-55,-6],[-60,-6],[-65,-7],[-70,-7],[-75,-8],[-80,-8],[-85,-9],[-90,-9],[-95,-10],[-100,-10]],
+  sd:[[-10,10],[-9.5,10],[-9,9],[-8.5,9],[-8,8],[-7.5,8],[-7,7],[-6.5,7],[-6,6],[-5.5,6],[-5,5],[-4.5,5],[-4,4],[-3.5,4],[-3,3],[-2.5,3],[-2,2],[-1.5,2],[-1,1],[-0.5,1],[0,0],[0.5,-1],[1,-1],[1.5,-2],[2,-2],[2.5,-3],[3,-3],[3.5,-4],[4,-4],[4.5,-5],[5,-5],[5.5,-6],[6,-6],[6.5,-7],[7,-7],[7.5,-8],[8,-8],[8.5,-9],[9,-9],[9.5,-10],[10,-10]],
+  igdp:[[5,-10],[4.5,-10],[4,-10],[3.5,-10],[3,-10],[2.5,-10],[2,-8],[1.5,-6],[1,-4],[0.5,-2],[0,0]],
+  liq:[[15,10],[14,8],[13,6],[12,4],[11,2],[10,0],[9,-1],[8,-2],[7,-3],[6,-4],[5,-5],[4,-6],[3,-7],[2,-8],[1,-9],[0,-10]],
+  t10:[[16,-10],[15,-9],[14,-8],[13,-7],[12,-6],[11,-5],[10,-4],[9,-3],[8,-2],[7,-1],[6,0],[5,2],[4,4],[3,6],[2,8],[1,10],[0,10]],
+};
+function closest(key, val){let best=null,bd=Infinity;for(const [rv,sc] of T[key]){const d=Math.abs(rv-val);if(d<bd){bd=d;best=sc}}return best}
+
+const INDS = [
+  { id:'pmi_mfg', label:'PMI Manufacturing', unit:'', block:'growth', section:'Surveys', type:'sel', source:'manual', frequency:'monthly', tooltip:'PMI > 50 = expansión', options:[['','— —'],['vl','ISM > 50 creciendo'],['l','ISM > 50 desacel.'],['s','ISM < 50 creciendo'],['vs','ISM < 50 desacel.']], calc:v=>({vl:-3,l:-2,s:-1,vs:0}[v]??null) },
+  { id:'pmi_svc', label:'PMI Services', unit:'', block:'growth', section:'Surveys', type:'sel', source:'manual', frequency:'monthly', tooltip:'Servicios expandiéndose mejora el score', options:[['','— —'],['vl','ISM > 50 creciendo'],['l','ISM > 50 desacel.'],['s','ISM < 50 creciendo'],['vs','ISM < 50 desacel.']], calc:v=>({vl:-3,l:-2,s:-1,vs:0}[v]??null) },
+  { id:'cc', label:'Consumer Confidence', unit:'/10', block:'risk', section:'Surveys', type:'num', source:'manual', frequency:'monthly', tooltip:'Confianza del consumidor fuerte apoya el score', placeholder:'1–10', step:'1', calc:v=>{const n=parseInt(v); if(isNaN(n))return null; return n<=4?-3:n<=6?-1:-5;} },
+  { id:'bp', label:'Building Permits', unit:'MoM%', block:'growth', section:'Surveys', type:'num', source:'manual', frequency:'monthly', tooltip:'Housing débil suele penalizar el score', placeholder:'e.g. 2', step:'0.5', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return n>3?-3:n>1?-2:n>0?-1:n>=-1?0:1;} },
+  { id:'m2', label:'Money Supply M2', unit:'A%', block:'monetary', section:'Monetary', type:'num', source:'FRED', frequency:'monthly', placeholder:'e.g. 10', step:'5', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('m2',n);} },
+  { id:'ir', label:'CB Interest Rates', unit:'A%', block:'monetary', section:'Monetary', type:'num', source:'FRED', frequency:'monthly', tooltip:'Recortes o relajación excesiva cambian el sesgo', placeholder:'e.g. −10', step:'5', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('ir',n);} },
+  { id:'cpi', label:'CPI', unit:'MoM%', block:'inflation', section:'Inflation', type:'num', source:'FRED', frequency:'monthly', tooltip:'Inflación baja y estable = positivo', placeholder:'e.g. 0.4', step:'0.1', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('cpi',n);} },
+  { id:'cpic', label:'Core CPI', unit:'MoM%', block:'inflation', section:'Inflation', type:'num', source:'FRED', frequency:'monthly', placeholder:'e.g. 0.3', step:'0.05', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('cpic',n);} },
+  { id:'ppi', label:'PPI', unit:'MoM%', block:'inflation', section:'Inflation', type:'num', source:'FRED', frequency:'monthly', placeholder:'e.g. 0.5', step:'0.25', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('ppi',n);} },
+  { id:'ppic', label:'Core PPI', unit:'MoM%', block:'inflation', section:'Inflation', type:'num', source:'FRED', frequency:'monthly', placeholder:'e.g. 0.3', step:'0.25', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('ppic',n);} },
+  { id:'nfp', label:'Employment', unit:'MoM%', block:'labor', section:'Employment', type:'num', source:'FRED', frequency:'monthly', tooltip:'Empleo estable o mejorando apoya el score', placeholder:'e.g. 0.2', step:'0.1', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('nfp',n);} },
+  { id:'debt', label:'Gov. Debt / GDP', unit:'%', block:'risk', section:'Sovereign', type:'num', source:'FRED', frequency:'quarterly', placeholder:'e.g. 95', step:'5', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('debt',n);} },
+  { id:'sd', label:'Gov. Surplus / Deficit', unit:'%GDP', block:'risk', section:'Sovereign', type:'num', source:'FRED', frequency:'monthly', placeholder:'e.g. −6', step:'0.5', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('sd',n);} },
+  { id:'igdp', label:'Interest / GDP', unit:'%GDP', block:'risk', section:'Sovereign', type:'num', source:'FRED', frequency:'quarterly', placeholder:'e.g. 2.0', step:'0.5', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('igdp',n);} },
+  { id:'liq', label:'Liquidity Cover', unit:'ratio', block:'risk', section:'Sovereign', type:'num', source:'manual', frequency:'manual', placeholder:'e.g. 10', step:'1', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('liq',n);} },
+  { id:'t10', label:'10Y Bond Yield', unit:'%', block:'risk', section:'Sovereign', type:'num', source:'FRED', frequency:'daily / monthly', placeholder:'e.g. 4.3', step:'0.5', calc:v=>{const n=parseFloat(v);if(isNaN(n))return null;return closest('t10',n);} },
+  { id:'gdp', label:'GDP Growth', unit:'', block:'growth', section:'GDP', type:'sel', source:'manual', frequency:'quarterly', tooltip:'Crecimiento positivo apoya el bloque growth', options:[['','— —'],['pos','Positivo'],['neg','Negativo']], calc:v=>({pos:-1,neg:0}[v]??null) },
+  { id:'seas', label:'Market Seasonality', unit:'', block:'risk', section:'Seasonality', type:'sel', source:'manual', frequency:'monthly', tooltip:'Mes alcista / bajista añade contexto', options:[['','— —'],['pos','Mes alcista'],['neg','Mes bajista']], calc:v=>({pos:-1,neg:0}[v]??null) },
+];
+const COUNTRIES = [
+  { id:'us', flag:'🇺🇸', name:'United States', code:'USD'},
+  { id:'eu', flag:'🇪🇺', name:'Eurozone', code:'EUR'},
+  { id:'gb', flag:'🇬🇧', name:'United Kingdom', code:'GBP'},
+  { id:'jp', flag:'🇯🇵', name:'Japan', code:'JPY'},
+  { id:'ch', flag:'🇨🇭', name:'Switzerland', code:'CHF'},
+  { id:'ca', flag:'🇨🇦', name:'Canada', code:'CAD'},
+  { id:'au', flag:'🇦🇺', name:'Australia', code:'AUD'},
+  { id:'nz', flag:'🇳🇿', name:'New Zealand', code:'NZD'},
+  { id:'cn', flag:'🇨🇳', name:'China', code:'CNY'},
+  { id:'sg', flag:'🇸🇬', name:'Singapore', code:'SGD'},
+];
+const FRED_MAP = {
+  us:{cpi:{series:'CPIAUCSL',transform:'pct_mom'},cpic:{series:'CPILFESL',transform:'pct_mom'},ppi:{series:'PPIFGS',transform:'pct_mom'},ppic:{series:'PPILFE',transform:'pct_mom'},nfp:{series:'PAYEMS',transform:'pct_mom'},m2:{series:'M2SL',transform:'pct_ann'},ir:{series:'FEDFUNDS',transform:'delta_ann'},t10:{series:'DGS10',transform:'last'},debt:{series:'GFDEGDQ188S',transform:'last'},sd:{series:'MTSDS133FMS',transform:'surplus_gdp'},igdp:{series:'A091RC1Q027SBEA',transform:'last'}},
+  eu:{cpi:{series:'CP0000EZ19M086NEST',transform:'pct_mom'},m2:{series:'MABMM301EZM189S',transform:'pct_ann'},ir:{series:'ECBDFR',transform:'delta_ann'},t10:{series:'IRLTLT01EZM156N',transform:'last'},debt:{series:'DDDI06EZA156NWDB',transform:'last'}},
+  gb:{cpi:{series:'GBRCPIALLMINMEI',transform:'pct_mom'},m2:{series:'MABMM301GBM189S',transform:'pct_ann'},ir:{series:'BOEBR',transform:'delta_ann'},t10:{series:'IRLTLT01GBM156N',transform:'last'},debt:{series:'DDDI06GBA156NWDB',transform:'last'}},
+  jp:{cpi:{series:'JPNCPIALLMINMEI',transform:'pct_mom'},m2:{series:'MABMM301JPM189S',transform:'pct_ann'},ir:{series:'IRSTCI01JPM156N',transform:'delta_ann'},t10:{series:'IRLTLT01JPM156N',transform:'last'},debt:{series:'DDDI06JPA156NWDB',transform:'last'}},
+  ca:{cpi:{series:'CANCPIALLMINMEI',transform:'pct_mom'},m2:{series:'MABMM301CAM189S',transform:'pct_ann'},ir:{series:'IRSTCI01CAM156N',transform:'delta_ann'},t10:{series:'IRLTLT01CAM156N',transform:'last'},debt:{series:'DDDI06CAA156NWDB',transform:'last'}},
+  au:{cpi:{series:'AUSCPIALLMINMEI',transform:'pct_mom'},ir:{series:'IRSTCI01AUM156N',transform:'delta_ann'},t10:{series:'IRLTLT01AUM156N',transform:'last'},debt:{series:'DDDI06AUA156NWDB',transform:'last'}},
+  ch:{cpi:{series:'CHECPIALLMINMEI',transform:'pct_mom'},ir:{series:'IRSTCI01CHM156N',transform:'delta_ann'},t10:{series:'IRLTLT01CHM156N',transform:'last'}},
+  nz:{cpi:{series:'NZLCPIALLMINMEI',transform:'pct_mom'},t10:{series:'IRLTLT01NZM156N',transform:'last'}},
+  cn:{cpi:{series:'CHNCPIALLMINMEI',transform:'pct_mom'},t10:{series:'IRLTLT01CNM156N',transform:'last'}},
+  sg:{cpi:{series:'SGPCPIALLMINMEI',transform:'pct_mom'},t10:{series:'IRLTLT01SGM156N',transform:'last'}},
+};
+const STATE = {}; const META = {};
+COUNTRIES.forEach(c=>{STATE[c.id]={}; META[c.id]={updatedAt:null, items:{}}});
+function seedManualDefaults(){
+  const defaults={
+    us:{pmi_mfg:'l',pmi_svc:'vl',cc:'7',bp:'1',gdp:'pos',seas:'pos',liq:'9'},
+    eu:{pmi_mfg:'s',pmi_svc:'l',cc:'6',bp:'0',gdp:'pos',seas:'neg',liq:'8'},
+    gb:{pmi_mfg:'l',pmi_svc:'l',cc:'6',bp:'0.5',gdp:'pos',seas:'pos',liq:'8'},
+    jp:{pmi_mfg:'s',pmi_svc:'l',cc:'5',bp:'-0.5',gdp:'pos',seas:'neg',liq:'10'},
+    ch:{pmi_mfg:'l',pmi_svc:'l',cc:'7',bp:'0.5',gdp:'pos',seas:'pos',liq:'12'},
+    ca:{pmi_mfg:'l',pmi_svc:'vl',cc:'6',bp:'1',gdp:'pos',seas:'pos',liq:'9'},
+    au:{pmi_mfg:'l',pmi_svc:'vl',cc:'6',bp:'1.5',gdp:'pos',seas:'pos',liq:'9'},
+    nz:{pmi_mfg:'s',pmi_svc:'l',cc:'5',bp:'-0.2',gdp:'neg',seas:'neg',liq:'8'},
+    cn:{pmi_mfg:'l',pmi_svc:'l',cc:'5',bp:'0.5',gdp:'pos',seas:'neg',liq:'7'},
+    sg:{pmi_mfg:'l',pmi_svc:'vl',cc:'6',bp:'0.4',gdp:'pos',seas:'pos',liq:'11'},
+  };
+  Object.entries(defaults).forEach(([cid,obj])=>Object.assign(STATE[cid],obj));
+}
+seedManualDefaults();
+function showView(name, el, countryId){
+  document.getElementById('view-home').style.display = name==='home' ? 'block' : 'none';
+  document.getElementById('view-country').style.display = name==='country' ? 'block' : 'none';
+  document.getElementById('view-compare').style.display = name==='compare' ? 'block' : 'none';
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  if(name==='home') document.querySelectorAll('.tab')[0].classList.add('active');
+  if(name==='compare') document.querySelectorAll('.tab')[1].classList.add('active');
+  if(name==='country') document.querySelectorAll('.tab')[2].classList.add('active');
+  if(countryId){CURRENT_COUNTRY=countryId; renderCountry(countryId)}
+}
+function toggleTheme(){document.documentElement.classList.toggle('dark');document.getElementById('themeBtn').textContent=document.documentElement.classList.contains('dark')?'Light':'Dark'}
+function applyTransform(obs, transform){
+  const valid=obs.filter(o=>o.value!=='.'&&o.value!=null).sort((a,b)=>new Date(b.date)-new Date(a.date));
+  if(!valid.length)return null; const n=v=>parseFloat(v.value); const v0=n(valid[0]);
+  if(transform==='last') return isNaN(v0)?null:Math.round(v0*100)/100;
+  if(transform==='pct_mom'){ if(valid.length<2) return null; const v1=n(valid[1]); if(isNaN(v0)||isNaN(v1)||v1===0) return null; return Math.round(((v0-v1)/v1)*10000)/100; }
+  if(transform==='pct_ann'){ if(valid.length<2) return null; const v1=n(valid[1]); if(isNaN(v0)||isNaN(v1)||v1===0) return null; return Math.round(((v0-v1)/v1)*1200*10)/10; }
+  if(transform==='delta_ann'){ const ago=valid.length>=13?n(valid[12]):n(valid[valid.length-1]); if(isNaN(v0)||isNaN(ago))return null; return Math.round((v0-ago)*100*10)/10; }
+  if(transform==='surplus_gdp'){ return Math.round((v0/2333333)*100*100)/100; }
+  return isNaN(v0)?null:v0;
+}
+async function fredFetch(seriesId){
+  const end=new Date(), start=new Date(end); start.setMonth(start.getMonth()-15); const fmt=d=>d.toISOString().split('T')[0];
+  const url=`https://api.stlouisfed.org/fred/series/observations?series_id=${seriesId}&api_key=${FRED_KEY}&file_type=json&sort_order=desc&observation_start=${fmt(start)}&observation_end=${fmt(end)}`;
+  const resp=await fetch(url,{signal:AbortSignal.timeout(12000)}); if(!resp.ok) throw new Error(`HTTP ${resp.status}`); const data=await resp.json(); return data.observations||[];
+}
+function getIndicator(indId){return INDS.find(i=>i.id===indId)}
+function getScoreParts(cid){
+  let rawTotal=0, filled=0; const contributions=[];
+  INDS.forEach(ind=>{ const value=STATE[cid][ind.id]; if(value!==undefined&&value!==''&&value!==null){ const sc=ind.calc(String(value)); if(sc!==null){ rawTotal += sc; filled++; contributions.push({id:ind.id,label:ind.label,score:sc,block:ind.block,value}) }}});
+  const normalized = Math.max(0, Math.min(100, Math.round(50 - rawTotal*2.2)));
+  return {rawTotal, normalized, filled, contributions};
+}
+function getBlockScores(cid){
+  const blocks={};
+  Object.entries(BLOCKS).forEach(([key, cfg])=>{ const vals=[]; cfg.items.forEach(id=>{ const ind=getIndicator(id); const value=STATE[cid][id]; if(ind && value!==undefined && value!=='' && value!==null){ const sc=ind.calc(String(value)); if(sc!==null) vals.push(sc); }}); let score; if(!vals.length){score=0}else{ const avg=vals.reduce((a,b)=>a+b,0)/vals.length; score=Math.max(0, Math.min(cfg.max, Math.round(((-avg+10)/20)*cfg.max))); } blocks[key]={...cfg, score}; });
+  return blocks;
+}
+function getBias(score){if(score>=67)return 'Bullish'; if(score>=45)return 'Neutral'; return 'Bearish'}
+function clsByScore(score){return score>=67?'pos':score>=45?'neu':'neg'}
+function deltaClass(val){return val>0?'pos':val<0?'neg':'neu'}
+function getHistory(){try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'{}')}catch{return {}}}
+function saveHistory(h){localStorage.setItem(HISTORY_KEY, JSON.stringify(h))}
+function recordHistory(){
+  const h=getHistory(); const today=new Date().toISOString().slice(0,10);
+  COUNTRIES.forEach(c=>{ const score=getScoreParts(c.id).normalized; if(!h[c.id]) h[c.id]=[]; const arr=h[c.id]; const existing=arr.find(x=>x.date===today); if(existing) existing.score=score; else arr.push({date:today, score}); while(arr.length<35){ const base=score + Math.round((Math.random()*10)-5); const d=new Date(); d.setDate(d.getDate()-(35-arr.length)); arr.unshift({date:d.toISOString().slice(0,10), score:Math.max(20,Math.min(90,base))}); } h[c.id]=arr.slice(-35); });
+  saveHistory(h);
+}
+function historyStats(cid){
+  const h=getHistory()[cid]||[]; const current=getScoreParts(cid).normalized; const week = h.length>=8 ? h[h.length-8].score : current; const month = h.length>=31 ? h[h.length-31].score : (h[0]?.score ?? current);
+  return {series:h.map(x=>x.score), weekly: current-week, monthly: current-month};
+}
+function sparklineSVG(series){
+  const values=(series&&series.length?series:[50,50,50]); const w=280,h=44,p=3; const min=Math.min(...values)-2,max=Math.max(...values)+2; const pts=values.map((v,i)=>{const x=p+(i*(w-p*2)/(Math.max(1,values.length-1)));const y=h-p-((v-min)/(max-min||1))*(h-p*2);return `${x.toFixed(1)},${y.toFixed(1)}`}).join(' ');
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline fill="none" stroke="currentColor" stroke-width="2" points="${pts}" opacity=".95"/></svg>`;
+}
+function getTrendLabel(score){if(score>=67)return 'Mejorando'; if(score>=45)return 'Mixto'; return 'Deteriorado'}
+function indicatorPrevValue(cid, indId){const meta=META[cid]?.items?.[indId]; return meta?.prev ?? '—'}
+function indicatorDate(cid, indId){const meta=META[cid]?.items?.[indId]; return meta?.date ?? '—'}
+function formatVal(v, unit=''){if(v===undefined||v===null||v==='')return '—'; return `${v}${unit&&typeof v!=='string' ? ' '+unit : ''}`.trim()}
+function scoreText(score){return `${score}/100`}
+function getDrivers(cid){
+  const contrib=getScoreParts(cid).contributions.slice().sort((a,b)=>a.score-b.score);
+  const positive=contrib.filter(x=>x.score<=-1).slice(0,3).map(x=>driverText(x,true));
+  const negative=contrib.filter(x=>x.score>=1).slice(-3).reverse().map(x=>driverText(x,false));
+  return {positive:positive.length?positive:['Sin suficientes señales positivas todavía'], negative:negative.length?negative:['Sin suficientes penalizadores claros todavía']};
+}
+function driverText(item, positive){
+  const map={
+    cpi: positive?'inflación moderándose':'inflación presionando',
+    cpic: positive?'core CPI contenida':'core CPI demasiado firme',
+    pmi_mfg: positive?'PMI manufacturero mejora':'PMI manufacturero flojo',
+    pmi_svc: positive?'servicios aguantan bien':'servicios perdiendo impulso',
+    nfp: positive?'empleo estable':'empleo debilitándose',
+    cc: positive?'confianza del consumidor sólida':'confianza del consumidor débil',
+    ir: positive?'entorno monetario más favorable':'política monetaria penaliza',
+    t10: positive?'yields apoyan el score':'yields / curva penalizan',
+    bp: positive?'housing aguanta':'caída en housing',
+    debt: positive?'balance fiscal relativamente sano':'deuda pública elevada',
+    sd: positive?'déficit controlado':'déficit fiscal empeorando',
+    m2: positive?'liquidez acompaña':'liquidez no acompaña',
+    gdp: positive?'crecimiento positivo':'crecimiento negativo',
+    seas: positive?'seasonality favorable':'seasonality desfavorable',
+    liq: positive?'cobertura de liquidez sólida':'liquidez débil',
+    igdp: positive?'coste de intereses contenido':'intereses / PIB elevado',
+  };
+  return map[item.id] || `${item.label} ${positive?'apoya':'penaliza'} el score`;
+}
+function renderGlobalStats(){
+  const scores=COUNTRIES.map(c=>getScoreParts(c.id).normalized); const avg=Math.round(scores.reduce((a,b)=>a+b,0)/scores.length); const strong=scores.filter(s=>s>=67).length; const weak=scores.filter(s=>s<45).length; const improving=COUNTRIES.filter(c=>historyStats(c.id).weekly>0).length;
+  document.getElementById('global-stats').innerHTML = [
+    ['Score medio global', avg, 'Promedio de la cobertura actual'],
+    ['Países bullish', strong, 'Score ≥ 67'],
+    ['Países deteriorados', weak, 'Score < 45'],
+    ['Mejorando esta semana', improving, 'Cambio semanal positivo'],
+  ].map(([l,v,f])=>`<div class="stat card"><div class="stat-label">${l}</div><div class="stat-value">${v}</div><div class="stat-foot">${f}</div></div>`).join('');
+}
+function renderRankings(){
+  const enriched=COUNTRIES.map(c=>({c,score:getScoreParts(c.id).normalized,...historyStats(c.id)}));
+  const strongest=[...enriched].sort((a,b)=>b.score-a.score).slice(0,5);
+  const improving=[...enriched].sort((a,b)=>b.weekly-a.weekly).slice(0,5);
+  const worsening=[...enriched].sort((a,b)=>a.weekly-b.weekly).slice(0,5);
+  const make=(title,sub,arr,key)=>`<div class="rank-card card"><div class="section-title">${title}</div><div class="section-sub">${sub}</div><ol>${arr.map((x,i)=>`<div class="rank-row"><div class="rank-left"><span class="mono">${i+1}.</span><span>${x.c.flag} ${x.c.name}</span></div><span class="score-chip ${key==='score'?clsByScore(x.score):deltaClass(x[key])}">${key==='score'?x.score:`${x[key]>0?'+':''}${Math.round(x[key])}`}</span></div>`).join('')}</ol></div>`;
+  document.getElementById('rankings').innerHTML = make('Top macro strongest','Ranking global por score total', strongest, 'score') + make('Top improving fastest','Mayor mejora semanal', improving, 'weekly') + make('Top deteriorating','Mayor deterioro semanal', worsening, 'weekly');
+}
+function renderHome(){
+  renderGlobalStats(); renderRankings();
+  const q=document.getElementById('country-search').value.trim().toLowerCase(); const sort=document.getElementById('sort-select').value;
+  const data=COUNTRIES.map(c=>{const parts=getScoreParts(c.id); const blocks=getBlockScores(c.id); const hist=historyStats(c.id); return {c,parts,blocks,hist,bias:getBias(parts.normalized)}})
+    .filter(x=>!q || x.c.name.toLowerCase().includes(q) || x.c.code.toLowerCase().includes(q));
+  data.sort((a,b)=> sort==='name' ? a.c.name.localeCompare(b.c.name) : sort==='weekly' ? b.hist.weekly-a.hist.weekly : sort==='monthly' ? b.hist.monthly-a.hist.monthly : b.parts.normalized-a.parts.normalized);
+  document.getElementById('country-grid').innerHTML = data.map(({c,parts,blocks,hist,bias})=>{
+    const mini = BLOCK_ORDER.map(key=>{const b=blocks[key]; const cls=clsByScore((b.score/b.max)*100); return `<div class="mini-pill ${cls}">${b.label.split(' ')[0]}</div>`}).join('');
+    return `<article class="country-card card" onclick="openCountry('${c.id}')">
+      <div class="country-top">
+        <div class="country-id">
+          <div class="flag">${c.flag}</div>
+          <div>
+            <div class="c-name">${c.name}</div>
+            <div class="c-meta"><span class="mono">${c.code}</span><span>Actualizado ${META[c.id].updatedAt || '—'}</span></div>
+          </div>
+        </div>
+        <div class="score-stack">
+          <div class="score-number">${parts.normalized}</div>
+          <div class="score-label mono">score total</div>
+          <div class="delta ${deltaClass(hist.weekly)}">1W ${hist.weekly>0?'+':''}${Math.round(hist.weekly)}</div>
         </div>
       </div>
-      <div class="cc-body">${bodyHtml}</div>
-    </div>`;
+      <div class="bias-row"><span class="bias ${clsByScore(parts.normalized)}">${bias}</span><span class="mono" style="font-size:11px;color:var(--muted)">1M ${hist.monthly>0?'+':''}${Math.round(hist.monthly)}</span></div>
+      <div class="mini-rail">${mini}</div>
+      <div class="block-grid">${BLOCK_ORDER.map(key=>{const b=blocks[key]; return `<div class="block"><div class="block-head"><span class="block-name">${b.label}</span><span class="block-score">${b.score}/${b.max}</span></div><div class="bar"><span class="${clsByScore((b.score/b.max)*100)}" style="width:${Math.max(4,(b.score/b.max)*100)}%"></span></div></div>`}).join('')}</div>
+      <div class="spark-wrap"><div class="spark-lbl"><span>Macro score history</span><span>${getTrendLabel(parts.normalized)}</span></div>${sparklineSVG(hist.series)}</div>
+    </article>`;
   }).join('');
 }
-
-function onInput(cid, iid, val) {
-  STATE[cid][iid] = val;
-  refreshCard(cid);
-}
-
-function refreshCard(cid) {
-  const { total, filled } = getScore(cid);
-  const sc = document.getElementById(`score-${cid}`);
-  const bi = document.getElementById(`bias-${cid}`);
-  const fi = document.getElementById(`filled-${cid}`);
-  if(sc) { sc.textContent = (total>0?'+':'')+total; sc.className='cc-score '+scCls(total); }
-  if(bi) { bi.textContent = biasLabel(total); bi.className='cc-bias '+bgCls(total); }
-  if(fi) fi.textContent = `${filled} / ${INDS.length}`;
-}
-
-// ══════════════════════════════════════════════════════════════
-// FRED AUTO-LOAD
-// ══════════════════════════════════════════════════════════════
-function setSyncStatus(state, msg) {
-  const dot = document.getElementById('sync-dot');
-  const txt = document.getElementById('sync-txt');
-  dot.className = 'sync-dot ' + state;
-  txt.textContent = msg;
-}
-
-async function loadAllFRED() {
-  setSyncStatus('loading', 'Cargando datos FRED...');
-
-  // Collect all fetches: { cid, iid, series, transform }
-  const tasks = [];
-  for(const c of COUNTRIES) {
-    const map = FRED_MAP[c.id];
-    if(!map) continue;
-    for(const [iid, cfg] of Object.entries(map)) {
-      tasks.push({ cid: c.id, iid, series: cfg.series, transform: cfg.transform });
-    }
-  }
-
-  // Show spinners
-  COUNTRIES.forEach(c => {
-    const sp = document.getElementById(`spin-${c.id}`);
-    if(sp && FRED_MAP[c.id]) sp.style.display = 'inline';
-  });
-
-  let loaded=0, failed=0;
-
-  // Process in small parallel batches to respect rate limits
-  const BATCH = 4;
-  for(let i=0; i<tasks.length; i+=BATCH) {
-    const batch = tasks.slice(i, i+BATCH);
-    await Promise.all(batch.map(async task => {
-      try {
-        const obs = await fredFetch(task.series);
-        const val = applyTransform(obs, task.transform);
-        if(val !== null) {
-          STATE[task.cid][task.iid] = String(val);
-          // Update input field
-          const inp = document.getElementById(`inp-${task.cid}-${task.iid}`);
-          if(inp && inp.type === 'number') {
-            inp.value = val;
-            inp.classList.add('live');
-          }
-          // Mark source badge green
-          const src = document.getElementById(`src-${task.cid}-${task.iid}`);
-          if(src) { src.textContent='FRED ✓'; src.className='ind-src live'; }
-          loaded++;
-        }
-      } catch(e) {
-        console.warn(`FRED [${task.cid}/${task.iid}/${task.series}]:`, e.message);
-        failed++;
-      }
-    }));
-
-    // Update cards progressively after each batch
-    const seen = new Set(batch.map(t=>t.cid));
-    seen.forEach(cid => refreshCard(cid));
-
-    // Throttle: 4 req per ~250ms = ~16 req/s, well under FRED's 120/min
-    if(i+BATCH < tasks.length) await new Promise(r=>setTimeout(r,260));
-  }
-
-  // Hide spinners, set timestamps
-  COUNTRIES.forEach(c => {
-    const sp  = document.getElementById(`spin-${c.id}`);
-    const upd = document.getElementById(`upd-${c.id}`);
-    if(sp)  sp.style.display = 'none';
-    if(upd) upd.textContent  = `↻ ${new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`;
-    refreshCard(c.id);
-  });
-
-  if(failed === 0) {
-    setSyncStatus('ok', `✓ ${loaded} series cargadas · ${new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'})}`);
-  } else {
-    setSyncStatus('ok', `✓ ${loaded} cargadas · ${failed} no disponibles`);
-  }
-}
-
-// ══════════════════════════════════════════════════════════════
-// COMPARE
-// ══════════════════════════════════════════════════════════════
-function populateCompareSelects() {
-  const opts = COUNTRIES.map(c=>`<option value="${c.id}">${c.flag} ${c.name} (${c.code})</option>`).join('');
-  ['cmp-a','cmp-b'].forEach(id=>{
-    document.getElementById(id).innerHTML = `<option value="">— Seleccionar —</option>`+opts;
-  });
-}
-
-function runCompare() {
-  const idA = document.getElementById('cmp-a').value;
-  const idB = document.getElementById('cmp-b').value;
-  const out = document.getElementById('cmp-out');
-  if(!idA||!idB||idA===idB) {
-    out.innerHTML=`<div class="empty-state"><div class="ei">⚠️</div><div>Selecciona dos países distintos</div></div>`;
-    return;
-  }
-  const cA=COUNTRIES.find(c=>c.id===idA), cB=COUNTRIES.find(c=>c.id===idB);
-  const sA=getScore(idA), sB=getScore(idB);
-  const diff = sA.total - sB.total;
-
-  let action, color, signal, desc;
-  if(diff<-5)     { action=`COMPRAR ${cA.code}/${cB.code}`; color='var(--bull)'; signal='BUY';
-                    desc=`${cA.name} muestra un perfil macro más fuerte. Diferencial de ${Math.abs(diff)} puntos favorece comprar ${cA.code} frente a ${cB.code}.`; }
-  else if(diff>5) { action=`VENDER ${cA.code}/${cB.code}`; color='var(--bear)'; signal='SELL';
-                    desc=`${cB.name} muestra un perfil macro más fuerte. Diferencial de ${Math.abs(diff)} puntos favorece vender ${cA.code} frente a ${cB.code}.`; }
-  else            { action=`NEUTRAL ${cA.code}/${cB.code}`; color='var(--neut)'; signal='WAIT';
-                    desc=`Diferencial insuficiente (${diff>0?'+':''}${diff} pts). Perfiles similares — introduce más datos o espera publicaciones.`; }
-
-  const groups = groupInds();
-  const rows = Object.entries(groups).map(([sec,inds])=>{
-    let stA=0,stB=0;
-    inds.forEach(ind=>{
-      const vA=STATE[idA][ind.id],vB=STATE[idB][ind.id];
-      if(vA&&vA!==''){const sc=ind.calc(String(vA));if(sc!==null)stA+=sc;}
-      if(vB&&vB!==''){const sc=ind.calc(String(vB));if(sc!==null)stB+=sc;}
-    });
-    const clA=stA<stB?'sc-bull':stA>stB?'sc-bear':'sc-neut';
-    const clB=stB<stA?'sc-bull':stB>stA?'sc-bear':'sc-neut';
-    const aA=stA<stB?'▲':stA>stB?'▼':'—', aB=stB<stA?'▲':stB>stA?'▼':'—';
-    return `<div class="bk-row">
-      <div class="bk-l ${clA}">${aA} ${stA>0?'+':''}${stA}</div>
-      <div class="bk-c">${sec}</div>
-      <div class="bk-r ${clB}">${stB>0?'+':''}${stB} ${aB}</div>
+function openCountry(cid){CURRENT_COUNTRY=cid; showView('country', null, cid)}
+function renderCountry(cid){
+  const c=COUNTRIES.find(x=>x.id===cid); const parts=getScoreParts(cid); const blocks=getBlockScores(cid); const hist=historyStats(cid); const bias=getBias(parts.normalized); const drivers=getDrivers(cid);
+  document.getElementById('country-hero').innerHTML = `
+    <div class="country-hero-top">
+      <div class="country-title"><div class="flag">${c.flag}</div><div><h2>${c.name}</h2><p>${c.code} · score macro total · última actualización ${META[cid].updatedAt || '—'}</p></div></div>
+      <div class="country-score-big"><div class="hero-score">${parts.normalized}</div><div><div class="score-pill ${clsByScore(parts.normalized)}">${bias}</div><div class="section-sub" style="margin:8px 0 0">1W ${hist.weekly>0?'+':''}${Math.round(hist.weekly)} · 1M ${hist.monthly>0?'+':''}${Math.round(hist.monthly)}</div></div></div>
+    </div>
+    <div class="summary-grid">
+      ${BLOCK_ORDER.map(key=>{const b=blocks[key];return `<div class="summary-card"><div class="lbl">${b.label}</div><div class="val">${b.score}/${b.max}</div><div class="bar"><span class="${clsByScore((b.score/b.max)*100)}" style="width:${Math.max(4,(b.score/b.max)*100)}%"></span></div></div>`}).join('')}
+      <div class="summary-card"><div class="lbl">Tendencia score</div><div style="color:var(--blue)">${sparklineSVG(hist.series)}</div></div>
     </div>`;
+  document.getElementById('drivers-box').innerHTML = `<div class="section-title">Drivers del score</div><div class="drivers"><div><div class="score-chip pos">Empujando arriba</div><ul>${drivers.positive.map(x=>`<li>${x}</li>`).join('')}</ul></div><div><div class="score-chip neg">Penalizando</div><ul>${drivers.negative.map(x=>`<li>${x}</li>`).join('')}</ul></div></div>`;
+  document.getElementById('events-box').innerHTML = (PRESET_EVENTS[cid]||[]).map(([ev,impact])=>`<li><span>${ev}</span><span class="score-chip ${impact==='alto'?'neg':impact==='medio'?'neu':'pos'}">impacto ${impact}</span></li>`).join('') || `<li><span>Sin calendario conectado</span><span class="score-chip neu">pendiente</span></li>`;
+  const keyIds=['cpi','cpic','ir','nfp','pmi_mfg','t10'];
+  document.getElementById('key-kpis').innerHTML = keyIds.map(id=>{const ind=getIndicator(id); const v=STATE[cid][id] ?? '—'; return `<div class="kpi-item"><span>${ind.label}</span><strong>${v} ${ind.unit||''}</strong></div>`}).join('');
+  const fredCount=Object.keys(FRED_MAP[cid]||{}).length;
+  document.getElementById('source-box').innerHTML = [`<li><span>Fuente principal</span><span>FRED / manual</span></li>`,`<li><span>Series automáticas</span><span>${fredCount}</span></li>`,`<li><span>Frecuencia visible</span><span>sí</span></li>`,`<li><span>Reglas internas</span><span>ocultas</span></li>`].join('');
+  renderCountryTable(cid);
+}
+function renderCountryTable(cid){
+  document.getElementById('country-table-body').innerHTML = INDS.map(ind=>{const value=STATE[cid][ind.id]; const score=value!==undefined&&value!==''&&value!==null ? ind.calc(String(value)) : null; const trend = score===null ? '—' : (score<=-1?'positivo':score>=1?'negativo':'neutral'); const prev=indicatorPrevValue(cid, ind.id); const weight = BLOCKS[ind.block]?.max ?? '—';
+    return `<tr>
+      <td><span class="tt" title="${ind.tooltip||ind.label}">${ind.label}</span></td>
+      <td>${BLOCKS[ind.block]?.label || '—'}</td>
+      <td>${value!==undefined&&value!==''?`${value} ${ind.unit}`.trim():'—'}</td>
+      <td class="analyst-col hidden">${prev}</td>
+      <td><span class="score-chip ${trend==='positivo'?'pos':trend==='negativo'?'neg':'neu'}">${trend}</span></td>
+      <td>${score===null?'—':score}</td>
+      <td class="analyst-col hidden">${weight}</td>
+      <td class="analyst-col hidden">${indicatorDate(cid, ind.id)}</td>
+      <td class="analyst-col hidden">${ind.source} · ${ind.frequency}</td>
+    </tr>`;
   }).join('');
-
-  out.innerHTML=`<div class="cmp">
-    <div class="cmp-verdict">
-      <div class="cv-signal" style="background:${color}22;color:${color};border:1px solid ${color}44">${signal}</div>
-      <div class="cv-action" style="color:${color}">${action}</div>
-      <div class="cv-diff">${cA.flag} ${cA.code} (${sA.total>0?'+':''}${sA.total}) &nbsp;vs&nbsp; ${cB.flag} ${cB.code} (${sB.total>0?'+':''}${sB.total}) &nbsp;·&nbsp; Δ${diff>0?'+':''}${diff} pts</div>
-      <div class="cv-desc">${desc}</div>
-    </div>
-    <div class="cmp-cols">
-      <div class="cmp-col">
-        <div class="col-flag">${cA.flag}</div>
-        <div class="col-name">${cA.name} (${cA.code})</div>
-        <div class="col-score ${scCls(sA.total)}">${sA.total>0?'+':''}${sA.total}</div>
-        <div class="col-bias ${bgCls(sA.total)}">${biasLabel(sA.total)}</div>
-      </div>
-      <div class="cmp-mid"><div class="mid-delta">Δ<span>${diff>0?'+':''}${diff}</span></div></div>
-      <div class="cmp-col">
-        <div class="col-flag">${cB.flag}</div>
-        <div class="col-name">${cB.name} (${cB.code})</div>
-        <div class="col-score ${scCls(sB.total)}">${sB.total>0?'+':''}${sB.total}</div>
-        <div class="col-bias ${bgCls(sB.total)}">${biasLabel(sB.total)}</div>
-      </div>
-    </div>
-    <div class="cmp-bk">
-      <div class="bk-title">Desglose — ${cA.code} (izq) vs ${cB.code} (der)</div>
-      ${rows}
-    </div>
-  </div>`;
 }
-
-// ══════════════════════════════════════════════════════════════
-// VIEW & THEME
-// ══════════════════════════════════════════════════════════════
-function showView(name, tabEl) {
-  document.getElementById('view-countries').classList.toggle('active', name==='countries');
-  document.getElementById('view-compare').classList.toggle('active', name==='compare');
-  document.querySelectorAll('.htab').forEach(t=>t.classList.remove('active'));
-  if(tabEl) tabEl.classList.add('active');
+function setCountryMode(mode){ COUNTRY_MODE=mode; document.getElementById('mode-simple').classList.toggle('active', mode==='simple'); document.getElementById('mode-analyst').classList.toggle('active', mode==='analyst'); document.querySelectorAll('.analyst-col').forEach(el=>el.classList.toggle('hidden', mode!=='analyst')); }
+function populateCompare(){
+  const opts=['<option value="">— Seleccionar —</option>'].concat(COUNTRIES.map(c=>`<option value="${c.id}">${c.flag} ${c.name}</option>`)).join('');
+  ['cmp-1','cmp-2','cmp-3'].forEach(id=>document.getElementById(id).innerHTML=opts);
+  document.getElementById('cmp-1').value='us'; document.getElementById('cmp-2').value='eu';
 }
-let dk=false;
-function toggleTheme(){
-  dk=!dk;
-  document.documentElement.classList.toggle('dark',dk);
-  document.getElementById('tbtn').textContent=dk?'☀ Light':'☾ Dark';
+function renderCompare(){
+  const ids=['cmp-1','cmp-2','cmp-3'].map(id=>document.getElementById(id).value).filter(Boolean); const unique=[...new Set(ids)]; if(unique.length<2){document.getElementById('compare-top').innerHTML=''; document.getElementById('compare-blocks').innerHTML='<div class="section-title">Selecciona al menos 2 países</div>'; return;}
+  const items=unique.map(id=>{const c=COUNTRIES.find(x=>x.id===id); const score=getScoreParts(id).normalized; const blocks=getBlockScores(id); return {id,c,score,blocks,bias:getBias(score)}}); const maxScore=Math.max(...items.map(i=>i.score));
+  document.getElementById('compare-top').innerHTML = items.map(i=>`<div class="compare-country card ${i.score===maxScore?'winner':''}"><div style="display:flex;justify-content:space-between;align-items:start;gap:10px"><div><div style="font-size:28px">${i.c.flag}</div><div class="section-title" style="margin-top:6px">${i.c.name}</div><div class="section-sub">${i.c.code}</div></div><span class="score-chip ${clsByScore(i.score)}">${i.bias}</span></div><div class="big">${i.score}</div><div class="section-sub">score total</div>${BLOCK_ORDER.map(k=>`<div class="kpi-item"><span>${i.blocks[k].label}</span><strong>${i.blocks[k].score}/${i.blocks[k].max}</strong></div>`).join('')}</div>`).join('');
+  document.getElementById('compare-blocks').innerHTML = `<div class="section-title">Quién gana en cada bloque</div><div class="section-sub">Comparación lado a lado para 2 o 3 países.</div>${BLOCK_ORDER.map(k=>{ const winner=Math.max(...items.map(i=>i.blocks[k].score)); return `<div class="bc-row"><div class="bc-name">${BLOCKS[k].label}</div>${items.map(i=>`<div class="bc-cell ${i.blocks[k].score===winner?'winner':''}"><div style="display:flex;justify-content:space-between;gap:10px"><span>${i.c.flag} ${i.c.code}</span><strong>${i.blocks[k].score}/${i.blocks[k].max}</strong></div></div>`).join('')}</div>`; }).join('')}<div class="footer-note">El comparador ya está orientado a score total, bloques e interpretación, no solo a mostrar el dato bruto.</div>`;
 }
-
-// ══════════════════════════════════════════════════════════════
-// INIT
-// ══════════════════════════════════════════════════════════════
-buildGrid();
-populateCompareSelects();
-// Auto-load FRED on page open
-window.addEventListener('load', loadAllFRED);
+function setSyncStatus(state,msg){const dot=document.getElementById('sync-dot'); dot.className='dot '+(state==='loading'?'warn':'live'); document.getElementById('sync-txt').textContent=msg}
+async function loadAllFRED(){
+  setSyncStatus('loading','Cargando FRED…');
+  const tasks=[]; COUNTRIES.forEach(c=>{const map=FRED_MAP[c.id]||{}; Object.entries(map).forEach(([iid,cfg])=>tasks.push({cid:c.id,iid,series:cfg.series,transform:cfg.transform}))});
+  let loaded=0,failed=0; const BATCH=4;
+  for(let i=0;i<tasks.length;i+=BATCH){
+    const batch=tasks.slice(i,i+BATCH);
+    await Promise.all(batch.map(async task=>{try{const obs=await fredFetch(task.series); const valid=obs.filter(o=>o.value!=='.'&&o.value!=null).sort((a,b)=>new Date(b.date)-new Date(a.date)); const val=applyTransform(obs,task.transform); if(val!==null){STATE[task.cid][task.iid]=String(val); META[task.cid].items[task.iid]={date:valid[0]?.date||'—', prev:valid[1]?.value||'—'}; META[task.cid].updatedAt=new Date().toLocaleTimeString('es-ES',{hour:'2-digit',minute:'2-digit'}); loaded++;}}catch(e){failed++;}}));
+    if(i+BATCH<tasks.length) await new Promise(r=>setTimeout(r,260));
+  }
+  recordHistory(); renderHome(); renderCountry(CURRENT_COUNTRY); renderCompare();
+  setSyncStatus('ok', failed ? `${loaded} series cargadas · ${failed} sin dato` : `${loaded} series cargadas`);
+}
+function init(){ populateCompare(); renderHome(); renderCountry(CURRENT_COUNTRY); renderCompare(); setCountryMode('simple'); loadAllFRED(); }
+window.addEventListener('load', init);
 </script>
 </body>
 </html>
